@@ -7,7 +7,7 @@ template<class ResultType, class... Args>
 class Function<ResultType(Args...)> final
 {
 private:
-    interface _IFunctor
+    INTERFACE _IFunctor
     {
         virtual ~_IFunctor() = default;
         virtual _IFunctor* Clone() const = 0;

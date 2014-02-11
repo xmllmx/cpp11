@@ -1,7 +1,7 @@
 #pragma once
 
-#ifndef interface
-#define interface struct
+#ifndef INTERFACE
+#define INTERFACE struct
 #endif
 
 #ifndef IN

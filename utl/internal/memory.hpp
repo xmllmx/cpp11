@@ -1,5 +1,31 @@
 #pragma once
 
+class Pointer
+{
+public:
+    Pointer()
+        : _p(nullptr)
+    {}
+
+    Pointer(const void* p)
+        : _p(p)
+    {}
+
+    const void* Get() const
+    {
+        return _p;
+    }
+
+    template<class Dest, ENABLE_IF(IsPointer<Dest>::value)>
+    Dest Cast() const
+    {
+        return static_cast<Dest>(const_cast<void*>(_p));
+    }
+
+private:
+    const void* _p;
+};
+
 template<class Pointer = void*>
 Pointer Allocate(size_t size_in_bytes)
 {
@@ -49,7 +75,7 @@ void Destruct(T& obj)
     obj.~T();
 }
 
-interface IChunker
+INTERFACE IChunker
 {
 	virtual ~IChunker() = default;
 

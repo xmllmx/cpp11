@@ -1,7 +1,5 @@
 #pragma once
 
-#include <cstddef>
-
 struct TrueType
 {
 	enum { value = true };
@@ -65,8 +63,8 @@ struct EnableIf<true>
 	typedef void type; // type is DummyType for test
 };
 
-#define ___ENABLE_IF___(expr) class = typename EnableIf<expr>::type
-#define ENABLE_IF(...) ___ENABLE_IF___((__VA_ARGS__))
+#define _ENABLE_IF_(expr) class = typename EnableIf<expr>::type
+#define ENABLE_IF(...) _ENABLE_IF_((__VA_ARGS__))
 
 template<class CharType>
 struct IsOrdinaryChar
@@ -501,29 +499,3 @@ void Swap(T& a, T& b)
 	a = Move(b);
 	b = Move(temp);
 }
-
-class Pointer
-{
-public:
-    Pointer()
-        : _p(nullptr)
-    {}
-
-    Pointer(const void* p)
-        : _p(p)
-    {}
-
-    const void* Get() const
-    {
-        return _p;
-    }
-
-    template<class Dest, ENABLE_IF(IsPointer<Dest>::value)>
-    Dest Cast() const
-    {
-        return static_cast<Dest>(const_cast<void*>(_p));
-    }
-
-private:
-    const void* _p;
-};
