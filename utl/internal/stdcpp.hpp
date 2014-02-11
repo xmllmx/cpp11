@@ -80,7 +80,7 @@ size_t GetArraySize(const T(&)[t_capacity])
     return t_capacity;
 }
 
-inline bool IsAnsiChar(wchar_t c)
+inline bool IsAnsiCharU16(wchar_t c)
 {
     return c < 0x128;
 }
