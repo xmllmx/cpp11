@@ -491,11 +491,67 @@ struct ResultOf<void(ArgTypes...)>
     typedef void type;
 };
 
+template<class T, T t_value>
+struct IntegralConstant
+{
+    static const T value = t_value;
+
+    typedef T value_type;
+    typedef IntegralConstant<T, t_value> type;
+
+    operator value_type() const
+    {
+        return (value);
+    }
+};
+
+typedef IntegralConstant<bool, true> true_type;
+typedef IntegralConstant<bool, false> false_type;
+
+template<class T>
+struct Rank
+    : IntegralConstant<size_t, 0>
+{};
+
+template<class T, size_t t_size>
+struct Rank<T[t_size]>
+    : IntegralConstant<size_t, Rank<T>::value + 1>
+{};
+
+template<class T>
+struct Rank<T[]>
+    : IntegralConstant<size_t, Rank<T>::value + 1>
+{};
+
+template<class T, size_t t_dim_idx>
+struct _Extent_
+    : IntegralConstant<size_t, 0>
+{};
+
+template<class T, size_t t_size>
+struct _Extent_<T[t_size], 0>
+    : IntegralConstant<size_t, t_size>
+{};
+
+template<class T, size_t t_size, size_t t_dim_idx>
+struct _Extent_<T[t_size], t_dim_idx>
+    : _Extent_<T, t_dim_idx - 1>
+{};
+
+template<class T, size_t t_dim_idx>
+struct _Extent_<T[], t_dim_idx>
+    : _Extent_<T, t_dim_idx - 1>
+{};
+
+template<class T, size_t t_dim_idx = 0>
+struct Extent
+    : _Extent_<T, t_dim_idx>
+{};
+
 template<class T>
 void Swap(T& a, T& b)
 {
 	auto temp = Move(a);
-
 	a = Move(b);
 	b = Move(temp);
 }

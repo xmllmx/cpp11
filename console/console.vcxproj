@@ -78,10 +78,13 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\utl\bcpp.hpp" />
+    <ClInclude Include="..\utl\internal\array.hpp" />
     <ClInclude Include="..\utl\internal\functional.hpp" />
     <ClInclude Include="..\utl\internal\macro.hpp" />
     <ClInclude Include="..\utl\internal\memory.hpp" />
+    <ClInclude Include="..\utl\internal\relop.hpp" />
     <ClInclude Include="..\utl\internal\stdcpp.hpp" />
+    <ClInclude Include="..\utl\internal\string.hpp" />
     <ClInclude Include="..\utl\internal\traits.hpp" />
   </ItemGroup>
   <ItemGroup>

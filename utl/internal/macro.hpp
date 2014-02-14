@@ -63,5 +63,14 @@
 #define DEFAULT_COPY(class_name) class_name(const class_name &) = default; class_name& operator =(const class_name &) = default
 #define DEFAULT_MOVE(class_name) class_name(class_name &&) = default; class_name& operator =(class_name &&) = default
 
-#define DEFINE_COPY_ASSIGNER(class_name) class_name & operator =(const class_name & other) {  if (this != &other) { class_name tmp(other); this->Swap(tmp); } return *this; }
-#define DEFINE_MOVE_ASSIGNER(class_name) class_name & operator =(class_name && other) {  if (this != &other) { class_name tmp(Move(other)); this->Swap(tmp); } return *this; }
+#define DEFINE_COPY_ASSIGNER(class_name) class_name & operator =(const class_name & other) { \
+    if (this != &other) { \
+    class_name tmp(other); \
+    this->swap(tmp); } \
+    return *this; }
+
+#define DEFINE_MOVE_ASSIGNER(class_name) class_name & operator =(class_name && other) { \
+    if (this != &other) { \
+    class_name tmp(Move(other)); \
+    this->swap(tmp); } \
+    return *this; }

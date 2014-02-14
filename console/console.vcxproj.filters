@@ -39,6 +39,15 @@
     <ClInclude Include="..\utl\internal\traits.hpp">
       <Filter>utl\internal</Filter>
     </ClInclude>
+    <ClInclude Include="..\utl\internal\array.hpp">
+      <Filter>utl\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\utl\internal\string.hpp">
+      <Filter>utl\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\utl\internal\relop.hpp">
+      <Filter>utl\internal</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">

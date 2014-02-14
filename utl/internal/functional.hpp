@@ -15,8 +15,9 @@ private:
     };
 
     template<class GenericFunction>
-    interface _Functor : _IFunctor
+    class _Functor : _IFunctor
     {
+    public:
         using _Callable = typename Conditional<IsRegularFunction<GenericFunction>::value, 
             GenericFunction*, GenericFunction>::type;
 
@@ -63,11 +64,6 @@ public:
 
     DEFINE_COPY_ASSIGNER(Function);
     DEFINE_MOVE_ASSIGNER(Function);
-
-    void Swap(Function&& other) noexcept
-    {
-        ::Swap(_fn, other._fn);
-    }
 
     ResultType operator ()(Args... args) const 
     {

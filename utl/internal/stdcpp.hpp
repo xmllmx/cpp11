@@ -1,5 +1,9 @@
 #pragma once
 
+#if defined(_MSC_VER)
+#pragma warning(disable : 4425) // 'const size_t Array<T,t_size>::size(void) const' : 'constexpr' was ignored (class literal types are not yet supported)
+#endif
+
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
@@ -15,12 +19,14 @@
 #include <initializer_list>
 #endif
 
+typedef unsigned char Byte;
+
 #include <internal/macro.hpp>
 #include <internal/traits.hpp>
+#include <internal/relop.hpp>
 #include <internal/functional.hpp>
 #include <internal/memory.hpp>
-
-typedef unsigned char Byte;
+#include <internal/array.hpp>
 
 template<class T>
 struct DeduciedType final
@@ -53,11 +59,15 @@ T Max(T a, T b)
 }
 
 template<class PointerType = void*>
+PointerType MovePtr(void* p, int64_t offset_in_bytes)
+{
+    return reinterpret_cast<PointerType>(static_cast<Byte*>(p) + offset_in_bytes);
+}
+
+template<class PointerType = const void*>
 PointerType MovePtr(const void* p, int64_t offset_in_bytes)
 {
-    auto tmp_p = const_cast<Byte*>(static_cast<const Byte*>(p)+offset_in_bytes);
-
-    return reinterpret_cast<PointerType>(tmp_p);
+    return reinterpret_cast<PointerType>(static_cast<const Byte*>(p) + offset_in_bytes);
 }
 
 template<class T>
@@ -80,7 +90,7 @@ size_t GetArraySize(const T(&)[t_capacity])
     return t_capacity;
 }
 
-inline bool IsAnsiCharU16(wchar_t c)
+inline bool IsAnsiChar(wchar_t c)
 {
     return c < 0x128;
 }
