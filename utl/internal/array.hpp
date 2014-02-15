@@ -3,6 +3,8 @@
 template<class T, size_t t_size>
 class Array
 {
+    static_assert(IsStandardLayout<Array>::value, "utl error");
+
 public:
     constexpr size_t size() const
     {
@@ -36,6 +38,8 @@ protected:
 template<class T, size_t t_size>
 class ComparableArray final : Array<T, t_size>
 {
+    static_assert(IsStandardLayout<ComparableArray>::value, "utl error");
+
 public:
     bool operator <(const ComparableArray& other) const
     {

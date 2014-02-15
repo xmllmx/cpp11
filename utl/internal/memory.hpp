@@ -1,31 +1,5 @@
 #pragma once
 
-class Pointer
-{
-public:
-    Pointer()
-        : _p(nullptr)
-    {}
-
-    Pointer(const void* p)
-        : _p(p)
-    {}
-
-    const void* Get() const
-    {
-        return _p;
-    }
-
-    template<class Dest, ENABLE_IF(IsPointer<Dest>::value)>
-    Dest Cast() const
-    {
-        return static_cast<Dest>(const_cast<void*>(_p));
-    }
-
-private:
-    const void* _p;
-};
-
 template<class Pointer = void*>
 Pointer Allocate(size_t size_in_bytes)
 {
@@ -118,44 +92,72 @@ template<class T>
 class UniquePtr final
 {
 public:
-    DELETE_COPY(UniquePtr);
-
     typedef typename RemoveConstVolatileReference<typename RemoveAllExtents<T>::type>::type ElementType;
 
-    UniquePtr()
-        : _p()
-    {}
+    template<class U, ENABLE_IF(!IsArray<U>::value && 0 == Extent<U>::value), class... Args>
+    friend UniquePtr<U> MakeUnique(Args&&... args);
 
-    explicit UniquePtr(ElementType* p)
-        : _p(p)
-    {}
+    template<class U, ENABLE_IF(IsArray<U>::value && 0 == Extent<U>::value)>
+    friend UniquePtr<U> MakeUnique(size_t size, bool is_default_initialized);
 
-    ~UniquePtr()
-    {
-        if (IsArray<T>::value)
-        {
-            delete[] _p;
-        }
-        else
-        {
-            delete _p;
-        }
-    }
+public:
+    DELETE_COPY(UniquePtr);
 
     UniquePtr(UniquePtr&& other)
-        : _p(other._p)
+        : _p(other._p), _max_size(other._max_size), _valid_size(other._valid_size)
     {
         other._p = nullptr;
+        other._max_size = 0;
+        other._valid_size = 0;
     }
 
-    UniquePtr& operator =(UniquePtr&& other)
+    DEFINE_MOVE_ASSIGNER(UniquePtr);
+    void swap(UniquePtr& other)
     {
         if (this != &other)
         {
-            _p = other._p;
+            Swap(_p, other._p);
+            Swap(_max_size, other._max_size);
+            Swap(_valid_size, other._valid_size);
+        }
+    }
+
+    ~UniquePtr()
+    {
+        if (_p)
+        {
+            if (IsArray<T>::value)
+            {
+                delete[] _p;
+            }
+            else
+            {
+                delete _p;
+            }
         }
 
-        return *this;
+        _p = nullptr;
+    }
+
+public:
+    UniquePtr()
+        : _p(), _max_size(), _valid_size()
+    {}
+
+    UniquePtr duplicate() const
+    {
+        if (!_p)
+        {
+            return {};
+        }
+
+        auto tmp = MakeUnique<T>(_max_size);
+        FOR (i, _valid_size)
+        {
+            tmp._p[i] = _p[i];
+        }
+
+        return tmp;
     }
 
     ElementType* operator ->() const
@@ -173,153 +175,97 @@ public:
         return _p[idx];
     }
 
-    explicit operator bool() const noexcept
+    size_t get_max_size() const
+    {
+        return _max_size;
+    }
+
+    size_t get_valid_size() const
+    {
+        return _valid_size;
+    }
+
+    explicit operator bool() const
     {
         return !!_p;
     }
 
-    void swap(UniquePtr& other) noexcept
-    {
-        ::Swap(_p, other._p);
-    }
-
-    ElementType* get() noexcept
+    ElementType* get()
     {
         return _p;
     }
 
-    const ElementType* get() const noexcept
+    const ElementType* get() const
     {
         return _p;
     }
 
-    ElementType* release() noexcept
+    ElementType* release()
     {
         auto tmp = _p;
+
         _p = nullptr;
+        _max_size = 0;
+        _valid_size = 0;
 
         return tmp;
     }
 
-    void reset(ElementType* p) noexcept
+    bool set_valid_size(size_t new_valid_size)
     {
-        Destruct<UniquePtr>(this);
-        _p = p;
+        if (new_valid_size <= _max_size)
+        {
+            _valid_size = new_valid_size;
+
+            return true;
+        }
+
+        return false;
     }
 
 private:
+    explicit UniquePtr(ElementType* p, size_t max_size, size_t valid_size)
+        : _p(p), _max_size(max_size), _valid_size(valid_size)
+    {}
+
+private:
     ElementType* _p;
+    size_t       _max_size;
+    size_t       _valid_size;
 };
 
-template<class T, class... Args, ENABLE_IF(!IsArray<T>::value && 0 == Extent<T>::value)>
+template<class T, ENABLE_IF(!IsArray<T>::value && 0 == Extent<T>::value), class... Args>
 UniquePtr<T> MakeUnique(Args&&... args)
 {
-    return UniquePtr<T>(new T(Forward<Args...>(args...)));
+    return UniquePtr<T>(new T(Forward<Args...>(args...)), 1, 1);
 }
 
 template<class T, ENABLE_IF(IsArray<T>::value && 0 == Extent<T>::value)>
-UniquePtr<T> MakeUnique(size_t size)
+UniquePtr<T> MakeUnique(size_t size, bool is_default_initialized = false)
 {
     typedef typename RemoveConstVolatileReference<RemoveAllExtents<T>::type>::type ElementType;
 
-    return UniquePtr<T>(new ElementType[size]());
+    if (0 == size)
+    {
+        return {};
+    }
+
+    if (is_default_initialized)
+    {
+        return UniquePtr<T>(new ElementType[size](), size, size);
+    }
+    else
+    {
+        return UniquePtr<T>(new ElementType[size], size, size);
+    }
 }
 
 template<class T, class... Args>
 typename EnableIf<Extent<T>::value != 0>::type MakeUnique(Args&&...) = delete;
 
-template<class T>
-class BasicBuffer final
+typedef UniquePtr<Byte[]> Buffer;
+
+inline Buffer MakeBuffer(size_t size, bool is_default_initialized = false)
 {
-public:
-    BasicBuffer()
-        : _buf_size(), _buf()
-    {}
-
-    BasicBuffer(size_t buf_size)
-        : _buf_size(buf_size), _buf(MakeUnique<T[]>(buf_size))
-    {}
-
-    BasicBuffer(const BasicBuffer& other)
-        : BasicBuffer(other.size())
-    {
-        FOR (i, _buf_size)
-        {
-            _buf[i] = other._buf[i];
-        }
-    }
-
-    BasicBuffer(BasicBuffer&& other)
-        : _buf(Move(other._buf))
-    {}
-
-    void swap(BasicBuffer& other) noexcept
-    {
-        ::Swap(_buf, other._buf);
-    }
-
-    DEFINE_COPY_ASSIGNER(BasicBuffer);
-    DEFINE_MOVE_ASSIGNER(BasicBuffer);
-
-    explicit operator bool() const
-    {
-        return !!_buf_size;
-    }
-
-    size_t size() const
-    {
-        return _buf_size;
-    }
-
-    const T& operator [](size_t idx) const
-    {
-        return _buf[idx];
-    }
-
-    T& operator [](size_t idx)
-    {
-        return _buf[idx];
-    }
-
-    template<class DestPointer = const void*>
-    DestPointer get() const
-    {
-        return reinterpret_cast<DestPointer>(_buf.get());
-    }
-
-    template<class DestPointer = void*>
-    DestPointer get()
-    {
-        return reinterpret_cast<DestPointer>(_buf.get());
-    }
-
-    operator const T*() const
-    {
-        return _buf.get();
-    }
-
-    operator T*()
-    {
-        return _buf.get();
-    }
-
-    void zero()
-    {
-        FOR(i, _buf_size)
-        {
-            _buf[i] = 0;
-        }
-    }
-
-    void clear()
-    {
-        _buf_size = 0;
-        _buf.release();        
-    }
-
-private:
-    size_t         _buf_size;
-    UniquePtr<T[]> _buf;    
-};
-
-typedef BasicBuffer<Byte> Buffer;
+    return MakeUnique<Byte[]>(size, is_default_initialized);
+}

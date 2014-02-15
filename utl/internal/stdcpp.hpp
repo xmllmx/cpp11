@@ -100,3 +100,4 @@ inline bool IsChineseCharU16(wchar_t c)
     return (c >= 0x4E00 && c <= 0x9FA5) || (c >= 0xF900 && c <= 0xFA2D);
 }
 
+#include <internal/string.hpp>
