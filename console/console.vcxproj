@@ -86,6 +86,8 @@
     <ClInclude Include="..\utl\internal\stdcpp.hpp" />
     <ClInclude Include="..\utl\internal\string.hpp" />
     <ClInclude Include="..\utl\internal\traits.hpp" />
+    <ClInclude Include="..\utl\internal\tuple.hpp" />
+    <ClInclude Include="..\utl\internal\utility.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />

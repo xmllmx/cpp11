@@ -2,20 +2,20 @@
 
 #include <internal/stdcpp.hpp>
 
-#if defined(___ZW_KERNEL_ONLY___)
-#include <internal/kmacro.hpp>
-#include <internal/knew.hpp>
+#if defined(_ZW_KERNEL_ONLY_)
+/**/#include <internal/kmacro.hpp>
+/**/#include <internal/knew.hpp>
 #else
-#include <new>
-#include <cassert>
-#define Assert  assert
-#define Abort() abort()
+/**/#include <new>
+/**/#include <cassert>
+/**/#define Assert  assert
+/**/#define Abort() abort()
 
-#if defined(NDEBUG)
-#define Print(_x_)
-#else
-#define Print(_x_) Log(_x_)
-#endif
+/**/#if defined(NDEBUG)
+/******/#define Print(_x_)
+/**/#else
+/******/#define Print(_x_) Log(_x_)
+/**/#endif
 
 #endif
 

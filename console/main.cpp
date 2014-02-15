@@ -1,23 +1,11 @@
 #include <bcpp.hpp>
+#include <tuple>
 
-template<class T>
-class A
-{
-    template<class U, ENABLE_IF(true), class = int>
-    friend A<U> MakeA();
-
-    A(T)
-    {}
-};
-
-template<class T, ENABLE_IF(true), class = int>
-A<T> MakeA()
-{
-    return A<T>(T());
-}
+using namespace std;
 
 int main()
 {
-    WideString s1(L"ddd");
-    auto s2 = Move(s1);
+    Tuple<int, int> a;
+    Get<0>(a) = 9;
+    Get<1>(a) = 3;
 }

@@ -48,6 +48,12 @@
     <ClInclude Include="..\utl\internal\relop.hpp">
       <Filter>utl\internal</Filter>
     </ClInclude>
+    <ClInclude Include="..\utl\internal\utility.hpp">
+      <Filter>utl\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\utl\internal\tuple.hpp">
+      <Filter>utl\internal</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">

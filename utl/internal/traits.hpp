@@ -549,6 +549,67 @@ struct Extent
 {};
 
 template<class T>
+constexpr bool IsLessThan(T a, T b)
+{
+    return a < b;
+}
+
+template<class T>
+constexpr bool IsGreaterThan(T a, T b)
+{
+    return a > b;
+}
+
+template<class T>
+constexpr bool IsLessThanOrEqualTo(T a, T b)
+{
+    return a <= b;
+}
+
+template<class T>
+constexpr bool IsGreaterThanOrEqualTo(T a, T b)
+{
+    return a >= b;
+}
+
+
+template<class T, ENABLE_IF(IsGreaterThan(sizeof(T), sizeof(void*)))>
+constexpr const T& Min(const T& a, const T& b)
+{
+    return a < b ? a : b;
+}
+
+template<class T, ENABLE_IF(IsGreaterThan(sizeof(T), sizeof(void*)))>
+constexpr const T& Max(const T& a, const T& b)
+{
+    return a < b ? b : a;
+}
+
+template<class T, ENABLE_IF(IsLessThanOrEqualTo(sizeof(T), sizeof(void*)))>
+constexpr T Min(T a, T b)
+{
+    return a < b ? a : b;
+}
+
+template<class T, ENABLE_IF(IsLessThanOrEqualTo(sizeof(T), sizeof(void*)))>
+constexpr T Max(T a, T b)
+{
+    return a < b ? b : a;
+}
+
+template<class T, size_t t_size>
+constexpr size_t GetArraySize(const T(&)[t_size])
+{
+    return t_size;
+}
+
+template<class T, ENABLE_IF(IsUnsigned<T>::value)>
+constexpr T GetInfinity()
+{
+    return T(-1);
+}
+
+template<class T>
 void Swap(T& a, T& b)
 {
 	auto temp = Move(a);

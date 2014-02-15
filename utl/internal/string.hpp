@@ -1,9 +1,9 @@
 #pragma once
 
 template<class CharType>
-size_t GetLength(const CharType* sz)
+constexpr size_t GetLength(const CharType* sz)
 {
-    FOR (i, size_t(-1))
+    FOR(i, GetInfinity<size_t>())
     {
         if (0 == sz[i])
         {
@@ -15,7 +15,7 @@ size_t GetLength(const CharType* sz)
 }
 
 template<class CharType>
-CharType* Copy(CharType* dst, const CharType* src, size_t count = -1)
+CharType* Copy(CharType* dst, const CharType* src, size_t count = GetInfinity<size_t>())
 {
     FOR(i, count)
     {
@@ -54,6 +54,36 @@ public:
         return _buf;
     }
 
+    bool operator <(const BasicString& other) const
+    {
+        return IsLessThan<BasicString>(_buf.c_str(), this->size(), other.c_str(), other.size());
+    }
+
+    bool operator >(const BasicString& other) const
+    {
+        return IsGreaterThan<BasicString>(_buf.c_str(), this->size(), other.c_str(), other.size());
+    }
+
+    bool operator ==(const BasicString& other) const
+    {
+        return IsEqualTo<BasicString>(_buf.c_str(), this->size(), other.c_str(), other.size());
+    }
+
+    bool operator !=(const BasicString& other) const
+    {
+        return IsNotEqualTo<BasicString>(_buf.c_str(), this->size(), other.c_str(), other.size());
+    }
+
+    bool operator <=(const BasicString& other) const
+    {
+        return IsLessThanOrEqualTo<BasicString>(_buf.c_str(), this->size(), other.c_str(), other.size());
+    }
+
+    bool operator >=(const BasicString& other) const
+    {
+        return IsGreaterThanOrEqualTo<BasicString>(_buf.c_str(), this->size(), other.c_str(), other.size());
+    }
+
 public:
     BasicString()
         : _buf()
@@ -62,7 +92,7 @@ public:
     BasicString(size_t count, CharType c)
         : _buf(MakeUnique<CharType[]>(count + 1, true))
     {
-        FOR (i, count)
+        FOR(i, count)
         {
             _buf[i] = c;
         }
@@ -196,6 +226,84 @@ public:
             _buf[0] = 0;
             _buf.set_valid_size(0);
         }
+    }
+
+    void push_back(CharType c)
+    {
+        if (_buf.get_valid_size() + 1 < _buf.get_max_size())
+        {
+            _buf[_buf.get_valid_size()] = c;
+            _buf[_buf.get_valid_size() + 1] = 0;
+            _buf.set_valid_size(_buf.get_valid_size() + 1);
+        }
+        else
+        {
+            this->reserve(2 * (_buf.get_max_size() + 2));
+            this->push_back(c);
+        }
+    }
+
+    void pop_back()
+    {
+        if (_buf.get_valid_size() > 0)
+        {
+            _buf[_buf.get_valid_size() - 1] = 0;
+            _buf.set_valid_size(_buf.get_valid_size() - 1);
+        }
+    }
+
+    BasicString& append(const CharType* sz, size_t cc_size = 0)
+    {
+        if (nullptr == sz)
+        {
+            return *this;
+        }
+
+        if (0 == cc_size)
+        {
+            cc_size = GetLength(sz);
+        }
+
+        auto new_valid_size = _buf.get_valid_size() + cc_size;
+
+        this->reserve(new_valid_size + 1);
+        memmove(&_buf[_buf.get_valid_size()], sz, cc_size * sizeof(CharType));        
+        _buf.set_valid_size(new_valid_size);
+        _buf[new_valid_size] = 0;
+
+        return *this;
+    }
+
+    BasicString& append(const BasicString& other)
+    {
+        return this->append(other.c_str(), other.length());
+    }
+
+    BasicString& operator <<(CharType c)
+    {
+        this->push_back(c);
+
+        return *this;
+    }
+
+    BasicString& operator <<(const CharType* sz)
+    {
+        while (*sz)
+        {
+            *this << *sz++;
+        }
+
+        return *this;
+    }
+
+    BasicString& operator <<(const BasicString& other)
+    {
+        FOR (i, other.size())
+        {
+            *this << other[i];
+        }
+
+        return *this;
     }
 
 protected:
