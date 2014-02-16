@@ -1,0 +1,16 @@
+TARGETNAME=qqsdbx
+TARGETTYPE=DRIVER
+DRIVERTYPE=FS
+
+INCLUDES=..\utl;
+
+TARGETLIBS= $(TARGETLIBS)\
+    $(IFSKIT_LIB_PATH)\fltMgr.lib\
+	$(IFSKIT_LIB_PATH)\ntoskrnl.lib\
+    $(IFSKIT_LIB_PATH)\ksecdd.lib\
+	$(IFSKIT_LIB_PATH)\ntstrsafe.lib
+
+USER_C_FLAGS=$(USER_C_FLAGS) -Zc:wchar_t -Zc:rvalueCast -D___ALL_FILE_OPERATIONS_NEED_INSTANCE___
+
+SOURCES=main.cpp\
+stub.cpp

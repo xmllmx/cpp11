@@ -31,9 +31,47 @@ void FormatString(char(&buf)[t_n], const char* fmt, Args... args)
 #endif
 }
 
+void PrintEx(const char* format, ...);
+
+inline void LogAnsiString(const char* sz)
+{
+    PrintEx("%s", sz);
+}
+
+inline void LogWideString(const wchar_t* sz)
+{
+    PrintEx("%ws", sz);
+}
+
 enum class Radix
 {
     HEX, hex, Dec
+};
+
+class Pointer final
+{
+public:
+    Pointer()
+        : _p(nullptr)
+    {}
+
+    Pointer(const void* p)
+        : _p(p)
+    {}
+
+    const void* Get() const
+    {
+        return _p;
+    }
+
+    template<class Dest, ENABLE_IF(IsPointer<Dest>::value)>
+    Dest Cast() const
+    {
+        return static_cast<Dest>(const_cast<void*>(_p));
+    }
+
+private:
+    const void* _p;
 };
 
 class Logger
@@ -169,12 +207,12 @@ public:
         return _OutputInteger<128>("%Lf", "%Lf", "%Lf", Lf);
     }
 
-    template<class CompatibleChar>
-    Logger& operator <<(const BasicCountedString<CompatibleChar>& str)
+    template<class CharType>
+    Logger& operator <<(const RawString<CharType>& str)
     {
-        FOR(i, str.GetLength())
+        FOR(i, str.length())
         {
-            if (IsCompatibleNarrowChar<CompatibleChar>::value)
+            if (1 == sizeof(CharType))
             {
                 *this << char(str[i]);
             }
@@ -187,10 +225,10 @@ public:
         return *this;
     }
 
-    template<class CharType, ENABLE_IF(IsCharType<CharType>::value)>
-    Logger& operator <<(const Auto<CharType[]>& str)
+    template<class CharType>
+    Logger& operator <<(const BasicString<CharType>& str)
     {
-        return *this << MakeCountedString(str);
+        return *this << MakeRawString<CharType>(str);
     }
 
 private:

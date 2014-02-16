@@ -399,3 +399,9 @@ protected:
 
 typedef BasicString<char>    AnsiString;
 typedef BasicString<wchar_t> WideString;
+
+template <class CharType>
+auto MakeRawString(const BasicString<CharType>& str)
+{
+    return RawString<CharType>(str.c_str(), str.length());
+}

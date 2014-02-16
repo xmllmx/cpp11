@@ -27,10 +27,7 @@
 /**/#include <ntkrnl/knew.hpp>
 /**/#define NTSTRSAFE_LIB
 /**/#include <ntstrsafe.h>
-/**/ULONG PrintEx(PCHAR format, ...);
 #endif
-
-#include <internal/log.hpp>
 
 typedef HANDLE ProcessId;
 typedef HANDLE ThreadId;
@@ -99,60 +96,6 @@ private:
     UNICODE_STRING _str;
 };
 
-class ObjectAttributes final
-{
-private:
-    ObjectAttributes(AutoInitFlag)
-        : _file_id(), _name(), _oa()
-    {}
-
-public:
-    ObjectAttributes()
-        : ObjectAttributes(auto_init)
-    {
-        InitializeObjectAttributes(&_oa, nullptr, OBJ_KERNEL_HANDLE|OBJ_CASE_INSENSITIVE, nullptr, nullptr);
-    }
-
-    ObjectAttributes(const UNICODE_STRING* name, HANDLE root_dir = 0, ULONG attributes = OBJ_KERNEL_HANDLE|OBJ_CASE_INSENSITIVE, PSECURITY_DESCRIPTOR sec_info = 0)
-        : _file_id(), _name(name), _oa()
-    {	
-        InitializeObjectAttributes(&_oa, _name, attributes, root_dir, sec_info);
-    }
-    
-    ObjectAttributes(HANDLE root_dir, uint64_t file_id, ULONG attributes = OBJ_KERNEL_HANDLE|OBJ_CASE_INSENSITIVE, PSECURITY_DESCRIPTOR sec_info = 0)
-        : _file_id(file_id), _name(reinterpret_cast<const wchar_t*>(&_file_id), sizeof(_file_id) / sizeof(wchar_t), false), _oa()
-    {
-        InitializeObjectAttributes(&_oa, _name, attributes, root_dir, sec_info);
-    }
-
-    ObjectAttributes(const wchar_t* name, HANDLE root_dir = 0, ULONG attributes = OBJ_KERNEL_HANDLE | OBJ_CASE_INSENSITIVE, PSECURITY_DESCRIPTOR sec_info = 0)
-        : _file_id(), _name(name), _oa()
-    {	
-        InitializeObjectAttributes(&_oa, _name, attributes, root_dir, sec_info);
-    }
-
-    ObjectAttributes(const wchar_t* sz_name, size_t sz_name_len, HANDLE root_dir = 0, ULONG attributes = OBJ_KERNEL_HANDLE|OBJ_CASE_INSENSITIVE, PSECURITY_DESCRIPTOR sec_info = 0)
-        : _file_id(), _name(sz_name, sz_name_len), _oa()
-    {
-        InitializeObjectAttributes(&_oa, _name, attributes, root_dir, sec_info);
-    }
-
-    operator POBJECT_ATTRIBUTES() const
-    {
-        return &const_cast<ObjectAttributes*>(this)->_oa;
-    }
-
-    const UNICODE_STRING* GetName() const
-    {
-        return _name;
-    }
-
-private:
-    uint64_t          _file_id;
-    UnicodeString     _name;
-    OBJECT_ATTRIBUTES _oa;
-};
-
 class LargeInteger final
 {
 public:
@@ -209,55 +152,6 @@ private:
     LARGE_INTEGER _n;
 };
 
-class EaInfo final
-{
-public:
-    UCHAR      flags;
-    AnsiString name;
-    Buffer value;
-
-public:
-    DISABLE_COPY(EaInfo);
-
-    EaInfo()
-        : flags(), name(), value()
-    {}
-
-    EaInfo(EaInfo&& other)
-        : flags(other.flags), name(Move(other.name)), value(Move(other.value))
-    {
-        other.flags = {};
-    }
-
-    DEFINE_MOVE_ASSIGNER(EaInfo);
-    DEFINE_SWAP_3(EaInfo, flags, name, value);
-};
-
-class StreamInfo final
-{
-public:
-    LargeInteger   size;
-    LargeInteger   allocation_size;
-    WideString name;
-
-public:
-    DISABLE_COPY(StreamInfo);
-
-    StreamInfo()
-        : size(), allocation_size(), name()
-    {}
-
-    StreamInfo(StreamInfo&& other)
-        : size(other.size), allocation_size(other.allocation_size), name(Move(other.name))
-    {
-        other.size            = 0;
-        other.allocation_size = 0;
-    }
-
-    DEFINE_MOVE_ASSIGNER(StreamInfo);
-    DEFINE_SWAP_3(StreamInfo, size, allocation_size, name);
-};
-
 class NtLastStatus
 {
 protected:
@@ -276,55 +170,4 @@ public:
 
 protected:
     mutable NTSTATUS _status;
-
-    DEFINE_SWAP_1(NtLastStatus, _status);
 };
-
-inline Buffer QueryNtData(Function<NTSTATUS(Buffer&, ULONG*)> fn_query,
-                          NTSTATUS* ret_status,
-                          size_t init_buf_size = PAGE_SIZE,
-                          Function<bool(NTSTATUS)> fn_should_terminate = 
-                          [](NTSTATUS status) { return NT_SUCCESS(status); })
-{
-    Buffer buf;
-
-    if (init_buf_size < PAGE_SIZE)
-    {
-        buf = MakeBuffer(PAGE_SIZE);
-    }
-    else
-    {
-        buf = MakeBuffer(init_buf_size);
-    }
-
-    buf.ValidSize(0);
-
-    auto& status = *ret_status;
-
-    while (true)
-    {
-        ULONG ret_size = 0;
-
-        status = fn_query(buf, &ret_size);
-
-        if (fn_should_terminate(status))
-        {
-            Assert(ret_size <= buf.MaxSize());
-            buf.ValidSize(ret_size);
-
-            return buf;
-        }
-
-        if (NT_SUCCESS(status) || STATUS_INSUFFICIENT_RESOURCES == status ||
-            STATUS_BUFFER_TOO_SMALL == status || STATUS_BUFFER_OVERFLOW == status)
-        {
-            buf.MaxSize(buf.MaxSize() * 2);
-
-            continue;
-        }
-        
-        break;
-    }
-
-    return {};
-}

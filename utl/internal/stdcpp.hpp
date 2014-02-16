@@ -38,3 +38,4 @@ typedef unsigned char Byte;
 #include <internal/tuple.hpp>
 #include <internal/utility.hpp>
 #include <internal/string.hpp>
+#include <internal/log.hpp>

@@ -1,11 +1,6 @@
-#include <kminiflt.hpp>
-#include <klock.hpp>
+#include <ntnative/kcmn.hpp>
 
-#include <internal/knew.cpp>
-#include <internal/klock.cpp>
-#include <internal/kfile.cpp>
-#include <internal/kfltfile.cpp>
-
+/*
 Driver* g_drv = nullptr;
 
 ZwQueryInformationProcessRoutine ZwQueryInformationProcess = nullptr;
@@ -84,22 +79,11 @@ PFLT_FILTER Driver::GetRawFilterObject() const
     return nullptr;
 }
 
-ULONG PrintEx(PCHAR format, ...)
+void PrintEx(const char* format, ...)
 {
     va_list args; 
     va_start(args, format);
-    auto status = vDbgPrintEx(DPFLTR_DEFAULT_ID, DPFLTR_ERROR_LEVEL, format, args); 
-    va_end(args); 
-
-    return status;
+    vDbgPrintEx(DPFLTR_DEFAULT_ID, DPFLTR_ERROR_LEVEL, format, args); 
+    va_end(args);
 }
-
-void LogAnsiString(const char* sz)
-{
-    PrintEx("%s", sz);
-}
-
-void LogWideString(const wchar_t* sz)
-{
-    PrintEx("%ws", sz);
-}
+*/
