@@ -1,19 +1,19 @@
 #pragma once
 
 #ifndef INTERFACE
-#define INTERFACE struct
+/**/#define INTERFACE struct
 #endif
 
 #ifndef IN
-#define IN
+/**/#define IN
 #endif
 
 #ifndef OUT
-#define OUT
+/**/#define OUT
 #endif
 
 #ifndef OPTIONAL
-#define OPTIONAL
+/**/#define OPTIONAL
 #endif
 
 #define _LINE_NUM_AS_ID_RESULT_(macro_name) _line_num_as_id_##macro_name##_
@@ -48,7 +48,7 @@
 #define NS_END() }
 
 #define LOOP(n) for (decltype(n) _dummy_ = 0; _dummy_ < (n); ++_dummy_)
-#define FOR(i, n) for (RemoveConst<decltype(n)>::type i = 0; i < (n); ++i)
+#define FOR(i, n) for (RemoveConstVolatileReference<decltype((n))>::type i = 0; i < (n); ++i)
 
 #define XOR(a, b) (((a) && !(b)) || (!(a) && (b)))
 #define XNOR(a, b) (((a) && (b)) || (!(a) && !(b)))
@@ -74,3 +74,5 @@
     class_name tmp(Move(other)); \
     this->swap(tmp); } \
     return *this; }
+
+#define AssertIf(condition, expr) Assert((condition) ? !!(expr) : true)

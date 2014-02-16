@@ -19,11 +19,14 @@
     <Filter Include="utl\internal">
       <UniqueIdentifier>{c499b330-5978-4eee-9cd7-85baee405a2d}</UniqueIdentifier>
     </Filter>
+    <Filter Include="utl\ntnative">
+      <UniqueIdentifier>{6d8a0b21-82b0-4df7-805a-8af2258785bf}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="utl\ntkrnl">
+      <UniqueIdentifier>{e1304b61-a325-4d5d-ae1c-82780159ac17}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\utl\bcpp.hpp">
-      <Filter>utl</Filter>
-    </ClInclude>
     <ClInclude Include="..\utl\internal\functional.hpp">
       <Filter>utl\internal</Filter>
     </ClInclude>
@@ -45,19 +48,49 @@
     <ClInclude Include="..\utl\internal\string.hpp">
       <Filter>utl\internal</Filter>
     </ClInclude>
-    <ClInclude Include="..\utl\internal\relop.hpp">
-      <Filter>utl\internal</Filter>
-    </ClInclude>
     <ClInclude Include="..\utl\internal\utility.hpp">
       <Filter>utl\internal</Filter>
     </ClInclude>
     <ClInclude Include="..\utl\internal\tuple.hpp">
       <Filter>utl\internal</Filter>
     </ClInclude>
+    <ClInclude Include="..\utl\ntnative\zw_utility.hpp">
+      <Filter>utl\ntnative</Filter>
+    </ClInclude>
+    <ClInclude Include="..\utl\ntnative\zw_user_mode.hpp">
+      <Filter>utl\ntnative</Filter>
+    </ClInclude>
+    <ClInclude Include="..\utl\ntnative\ntstring.hpp">
+      <Filter>utl\ntnative</Filter>
+    </ClInclude>
+    <ClInclude Include="..\utl\ntnative\kcmn.hpp">
+      <Filter>utl\ntnative</Filter>
+    </ClInclude>
+    <ClInclude Include="..\utl\ntkrnl\kmacro.hpp">
+      <Filter>utl\ntkrnl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\utl\ntkrnl\knew.hpp">
+      <Filter>utl\ntkrnl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\utl\ntkrnl\kcpp.hpp">
+      <Filter>utl\ntkrnl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\utl\ucpp.hpp">
+      <Filter>utl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\utl\internal\log.hpp">
+      <Filter>utl\internal</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\utl\ntnative\zw_user_mode.cpp">
+      <Filter>utl\ntnative</Filter>
+    </ClCompile>
+    <ClCompile Include="..\utl\ntkrnl\kcpp.cpp">
+      <Filter>utl\ntkrnl</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

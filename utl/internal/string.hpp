@@ -1,9 +1,9 @@
 #pragma once
 
 template<class CharType>
-constexpr size_t GetLength(const CharType* sz)
+size_t GetLength(const CharType* sz)
 {
-    FOR(i, GetInfinity<size_t>())
+    FOR(i, Max<size_t>())
     {
         if (0 == sz[i])
         {
@@ -15,7 +15,7 @@ constexpr size_t GetLength(const CharType* sz)
 }
 
 template<class CharType>
-CharType* Copy(CharType* dst, const CharType* src, size_t count = GetInfinity<size_t>())
+CharType* Copy(CharType* dst, const CharType* src, size_t count = Infinity<size_t>())
 {
     FOR(i, count)
     {
@@ -29,6 +29,84 @@ CharType* Copy(CharType* dst, const CharType* src, size_t count = GetInfinity<si
 
     return dst;
 }
+
+template<class CharType>
+class RawString
+{
+public:
+    RawString()
+        : _sz(), _length()
+    {}
+
+    RawString(const CharType* sz, size_t length)
+        : _sz(const_cast<CharType*>(sz)), _length(length)
+    {}
+
+    explicit operator bool() const
+    {
+        return !!_sz && !!_length;
+    }
+
+    size_t length() const
+    {
+        return _length;
+    }
+
+    CharType* data()
+    {
+        return _sz;
+    }
+
+    const CharType* data() const
+    {
+        return _sz;
+    }
+
+    CharType& operator [](size_t idx)
+    {
+        return _sz[idx];
+    }
+
+    const CharType& operator [](size_t idx) const
+    {
+        return _sz[idx];
+    }
+
+    CharType& front()
+    {
+        return _sz[0];
+    }
+
+    const CharType& front() const
+    {
+        return _sz[0];
+    }
+
+    CharType& back()
+    {
+        return _sz[_length - 1];
+    }
+
+    const CharType& back() const
+    {
+        return _sz[_length - 1];
+    }
+
+    void pop_back()
+    {
+        if (*this)
+        {
+            _sz[--_length] = 0;
+        }
+    }
+
+private:
+    CharType* _sz;
+    size_t    _length;
+};
+
+typedef RawString<char>    AnsiRawString;
+typedef RawString<wchar_t> WideRawString;
 
 template<class CharType>
 class BasicString
@@ -110,16 +188,20 @@ public:
         }
     }
 
-    BasicString(const CharType* sz, size_t count)
-        : _buf(count > 0 ? MakeUnique<CharType[]>(count + 1) : UniquePtr<CharType[]>())
+    BasicString(const CharType* sz, size_t length)
+        : _buf(length > 0 ? MakeUnique<CharType[]>(length + 1) : UniquePtr<CharType[]>())
     {
-        if (count > 0)
+        if (length > 0)
         {
-            Copy(_buf.get(), sz, count);
-            _buf[count] = 0; // enforce the string is null-terminated
+            Copy(_buf.get(), sz, length);
+            _buf[length] = 0; // enforce the string is null-terminated
             _buf.set_valid_size(_buf.get_max_size() - 1);
         }
     }
+
+    BasicString(const RawString<CharType>& raw_str)
+        : BasicString(raw_str.data(), raw_str.length())
+    {}
 
     size_t size() const
     {
@@ -149,7 +231,12 @@ public:
         }
 
         auto tmp_buf = MakeUnique<CharType[]>(new_max_size);
-        Copy(tmp_buf.get(), _buf.get());
+        
+        if (_buf)
+        {
+            Copy(tmp_buf.get(), _buf.get());
+        }
+
         tmp_buf.set_valid_size(_buf.get_valid_size());
 
         _buf = Move(tmp_buf);
