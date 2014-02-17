@@ -35,8 +35,10 @@
     <ClInclude Include="..\utl\internal\tuple.hpp" />
     <ClInclude Include="..\utl\internal\utility.hpp" />
     <ClInclude Include="..\utl\ntkrnl\kcpp.hpp" />
+    <ClInclude Include="..\utl\ntkrnl\klock.hpp" />
     <ClInclude Include="..\utl\ntkrnl\kmacro.hpp" />
     <ClInclude Include="..\utl\ntkrnl\knew.hpp" />
+    <ClInclude Include="..\utl\ntkrnl\ktree.hpp" />
     <ClInclude Include="..\utl\ntnative\kcmn.hpp" />
     <ClInclude Include="..\utl\ntnative\ntstring.hpp" />
     <ClInclude Include="..\utl\ntnative\zw_user_mode.hpp" />

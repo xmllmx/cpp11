@@ -65,6 +65,11 @@ public:
     DEFINE_COPY_ASSIGNER(Function);
     DEFINE_MOVE_ASSIGNER(Function);
 
+    void swap(Function& other) noexcept
+    {
+        Swap(_fn, other._fn);
+    }
+
     ResultType operator ()(Args... args) const 
     {
         return (*_fn)(Forward<Args>(args)...);
@@ -79,14 +84,14 @@ private:
     _IFunctor* _fn;
 };
 
-class _DeferrableOperations_ final
+class _Deferrable_ final
 {
 public:
-    _DeferrableOperations_(Function<void()> fn)
+    _Deferrable_(Function<void()> fn)
         : _fn(fn)
     {}
 
-    ~_DeferrableOperations_()
+    ~_Deferrable_()
     {
         _fn();
     }

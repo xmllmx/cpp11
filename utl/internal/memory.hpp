@@ -12,6 +12,18 @@ inline void Free(void* p)
 }
 
 template<class T>
+void Destruct(T* p)
+{
+    p->~T();
+}
+
+template<class T, ENABLE_IF(!IsPointer<T>::value)>
+void Destruct(T& obj)
+{
+    obj.~T();
+}
+
+template<class T>
 class UniquePtr final
 {
 public:

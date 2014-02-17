@@ -16,6 +16,8 @@ extern "C" NTSTATUS NTAPI ObReferenceObjectByName(PUNICODE_STRING ObjectPath,
                                                   PVOID* ObjectPtr);
 
 #include <ntnative/zw_utility.hpp>
+#include <ntkrnl/klock.hpp>
+#include <ntkrnl/ktree.hpp>
 
 class Driver
 {
@@ -46,6 +48,14 @@ extern Driver* g_drv;
 inline bool IsMiniFilter()
 {
     return g_drv->IsMiniFilter();
+}
+
+inline ULONG GetRandomSeed()
+{
+    LARGE_INTEGER n = {};
+    KeQueryPerformanceCounter(&n);
+
+    return n.LowPart;
 }
 
 Driver* CreateDriverInstance(PDRIVER_OBJECT drv_obj, PUNICODE_STRING reg_path); // The user must implement this function
@@ -148,53 +158,3 @@ private:
     EResource          _lock;
     AvlTree<ProcessId> _new_pids;
 };
-
-inline WideString GetRenamedFullPath(PFLT_INSTANCE instance, const FILE_RENAME_INFORMATION* rename_info)
-{
-    Assert(rename_info);
-
-    if (rename_info->RootDirectory)
-    {
-        WideString dir_path;
-
-        if (g_drv->IsMiniFilter())
-        {
-            Assert(instance);
-            dir_path = FltFile(instance).Bind(HandleToNtObject<FILE_OBJECT>(rename_info->RootDirectory)).QueryFullPath();
-        }
-        else
-        {
-            Assert(nullptr == instance);
-            dir_path = FileWithExistingHandle(rename_info->RootDirectory).QueryFullPath();
-        }
-
-        Assert(dir_path);
-
-        return dir_path << L"\\" << MakeCountedString(rename_info);
-    }
-    else
-    {
-        return MakeString(MakeCountedString(rename_info));
-    }
-}
-
-inline WideString GetVolumePath(HANDLE h_file)
-{
-    auto file_obj  = HandleToNtObject<FILE_OBJECT>(h_file);
-    Assert(file_obj);
-
-    return QueryObjectName(file_obj->DeviceObject);
-}
-
-inline WideString GetProcessPath(ProcessId pid = PsGetCurrentProcessId())
-{
-    return NtProcess(pid).GetImagePath();
-}
-
-inline ULONG GetRandomSeed()
-{
-    LARGE_INTEGER n = {};
-    KeQueryPerformanceCounter(&n);
-
-    return n.LowPart;
-}

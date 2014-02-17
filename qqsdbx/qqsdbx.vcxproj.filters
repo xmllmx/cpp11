@@ -111,5 +111,11 @@
     <ClInclude Include="..\utl\ntnative\zw_utility.hpp">
       <Filter>utl\ntnative</Filter>
     </ClInclude>
+    <ClInclude Include="..\utl\ntkrnl\ktree.hpp">
+      <Filter>utl\ntkrnl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\utl\ntkrnl\klock.hpp">
+      <Filter>utl\ntkrnl</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
