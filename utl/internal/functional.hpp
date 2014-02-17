@@ -15,7 +15,7 @@ private:
     };
 
     template<class GenericFunction>
-    class _Functor : _IFunctor
+    struct _Functor : _IFunctor
     {
     public:
         using _Callable = typename Conditional<IsRegularFunction<GenericFunction>::value, 

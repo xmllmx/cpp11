@@ -13,6 +13,18 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="utl">
+      <UniqueIdentifier>{fb30fb8f-6b01-47db-902b-5fe1151ee6c3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="utl\internal">
+      <UniqueIdentifier>{0d76088e-13b6-402d-8779-82e56063443e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="utl\ntkrnl">
+      <UniqueIdentifier>{511d6a8d-6f2d-49d8-9880-3b393acc49e5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="utl\ntnative">
+      <UniqueIdentifier>{700e04aa-a3a6-4799-99ee-c911e30099e1}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -20,6 +32,12 @@
     </ClCompile>
     <ClCompile Include="stub.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\utl\ntkrnl\kcpp.cpp">
+      <Filter>utl\ntkrnl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\utl\ntnative\zw_user_mode.cpp">
+      <Filter>utl\ntnative</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -34,5 +52,64 @@
     <ResourceCompile Include="sandbox.rc">
       <Filter>Resource Files</Filter>
     </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\utl\path_mgr.hpp">
+      <Filter>utl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\utl\ucpp.hpp">
+      <Filter>utl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\utl\internal\array.hpp">
+      <Filter>utl\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\utl\internal\functional.hpp">
+      <Filter>utl\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\utl\internal\log.hpp">
+      <Filter>utl\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\utl\internal\macro.hpp">
+      <Filter>utl\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\utl\internal\memory.hpp">
+      <Filter>utl\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\utl\internal\stdcpp.hpp">
+      <Filter>utl\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\utl\internal\string.hpp">
+      <Filter>utl\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\utl\internal\traits.hpp">
+      <Filter>utl\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\utl\internal\tuple.hpp">
+      <Filter>utl\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\utl\internal\utility.hpp">
+      <Filter>utl\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\utl\ntkrnl\kcpp.hpp">
+      <Filter>utl\ntkrnl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\utl\ntkrnl\kmacro.hpp">
+      <Filter>utl\ntkrnl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\utl\ntkrnl\knew.hpp">
+      <Filter>utl\ntkrnl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\utl\ntnative\kcmn.hpp">
+      <Filter>utl\ntnative</Filter>
+    </ClInclude>
+    <ClInclude Include="..\utl\ntnative\ntstring.hpp">
+      <Filter>utl\ntnative</Filter>
+    </ClInclude>
+    <ClInclude Include="..\utl\ntnative\zw_user_mode.hpp">
+      <Filter>utl\ntnative</Filter>
+    </ClInclude>
+    <ClInclude Include="..\utl\ntnative\zw_utility.hpp">
+      <Filter>utl\ntnative</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

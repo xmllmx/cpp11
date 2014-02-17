@@ -1,9 +1,9 @@
 #pragma once
 
-#include <internal/kcmn.hpp>
+#include <ntnative/kcmn.hpp>
 
-#ifndef _NT_KERNEL_MODE_
-/**/#error macro '_NT_KERNEL_MODE_' not defined
+#ifndef _ZW_KERNEL_MODE_
+/**/#error macro '_ZW_KERNEL_MODE_' not defined
 #endif
 
 extern "C" NTSTATUS NTAPI ObReferenceObjectByName(PUNICODE_STRING ObjectPath,
@@ -15,18 +15,13 @@ extern "C" NTSTATUS NTAPI ObReferenceObjectByName(PUNICODE_STRING ObjectPath,
                                                   PVOID ParseContext,
                                                   PVOID* ObjectPtr);
 
-#include <internal/zw_utility.hpp>
-#include <internal/kutility.hpp>
-#include <internal/kchunker.hpp>
-#include <internal/kfile.hpp>
-#include <internal/kfltfile.hpp>
-#include <ktree.hpp>
+#include <ntnative/zw_utility.hpp>
 
 class Driver
 {
 public:
-    DISABLE_COPY(Driver);
-    DISABLE_MOVE(Driver);
+    DELETE_COPY(Driver);
+    DELETE_MOVE(Driver);
 
 	virtual ~Driver() = default;
 	

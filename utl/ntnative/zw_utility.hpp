@@ -1,9 +1,21 @@
 #pragma once
 
+template<class T, ENABLE_IF(IsPointer<T>::value)>
+class Unused final
+{
+public:
+    operator T()
+    {
+        return &_dummy;
+    }
+
+private:
+    typename RemovePointer<T>::type _dummy;
+};
+
 #define DECLARE_FUNCTION_POINTER(function_name) extern function_name##Routine function_name##U
 
-typedef struct _OBJECT_DIRECTORY_INFORMATION
-{
+typedef struct _OBJECT_DIRECTORY_INFORMATION {
     UNICODE_STRING Name;
     UNICODE_STRING TypeName;
 } OBJECT_DIRECTORY_INFORMATION, *POBJECT_DIRECTORY_INFORMATION;
@@ -221,7 +233,6 @@ DECLARE_FUNCTION_POINTER(RtlSetDaclSecurityDescriptor);
 DECLARE_FUNCTION_POINTER(RtlGetVersion);
 DECLARE_FUNCTION_POINTER(RtlRandomEx);
 
-#include <internal/path_mgr.hpp>
 #include <ntnative/ntstring.hpp>
 
 #if defined(_ZW_USER_MODE_)
@@ -262,197 +273,6 @@ extern ZwQueryInformationProcessRoutine ZwQueryInformationProcess;
 extern ZwAdjustPrivilegesTokenRoutine   ZwAdjustPrivilegesToken;
 extern ZwQueryDirectoryObjectRoutine    ZwQueryDirectoryObject;
 #endif
-
-inline WideString _SymbolicLinkToTarget_(const wchar_t* symbolic_link)
-{
-    HANDLE h_link = {};
-    auto   status = ZwOpenSymbolicLinkObject(&h_link, GENERIC_READ, ObjectAttributes(symbolic_link));
-
-    if (NT_SUCCESS(status))
-    {
-        DEFER(ZwClose(h_link));
-        
-        auto fn_query_sym_link = [&](Buffer& buf, ULONG* ret_size)
-        {
-            UNICODE_STRING str = { 0, USHORT(buf.MaxBufSize() - sizeof(wchar_t)), buf.Cast<PWCH>() };
-
-            status    = ZwQuerySymbolicLinkObject(h_link, &str, 0);
-            *ret_size = str.Length;
-
-            return status;
-        };
-
-        auto buf = QueryNtData(fn_query_sym_link, &status, 1024);
-        if (NT_SUCCESS(status))
-        {
-            return MakeString(buf.Cast<wchar_t*>(), buf.ValidSize() / sizeof(wchar_t));
-        }
-    }
-
-    return{};
-}
-
-inline bool IsRegularNtFilePath(const wchar_t* path)
-{
-    return !!FindNth(path, 3, IsPathSeparator<wchar_t>);
-}
-
-inline WideString GetExpandedNtPath(const wchar_t* path_may_contain_symlink)
-{
-    PathManager path_mgr(path_may_contain_symlink);
-
-    while (path_mgr.PushFinalComponent());
-    while (path_mgr.PopFinalComponent())
-    {
-        auto new_path = ___SymbolicLinkToTarget___(path_mgr.GetCurrentFullPath());
-        if (new_path)
-        {
-            path_mgr.ReplaceCurrentFullPath(GetExpandedNtPath(new_path));
-        }
-    }
-
-    return path_mgr.YieldFullPath();
-}
-
-class NtProcess final : public NtLastStatus
-{
-public:
-    NtProcess(ProcessId pid = 0, ACCESS_MASK da = PROCESS_QUERY_INFORMATION)
-        : NtLastStatus(), _h_process(pid ? nullptr : ZwCurrentProcess())
-    {
-        if (!_h_process)
-        {
-            CLIENT_ID client_id = {};
-            client_id.UniqueProcess = pid;
-
-            _status = ZwOpenProcess(&_h_process, da, ObjectAttributes(), &client_id);
-            if (!NT_SUCCESS(_status))
-            {
-                _h_process = {};
-            }
-        }
-    }
-
-    ~NtProcess()
-    {
-        this->Close();
-    }
-    
-    explicit operator bool() const
-    {
-        return !!_h_process;
-    }
-
-    operator HANDLE() const
-    {
-        return _h_process;
-    }
-    
-    void Close()
-    {
-        if (_h_process)
-        {
-            _status = ZwClose(_h_process);
-            _h_process = {};
-        }
-    }
-
-    WideString GetImagePath() const
-    {
-        if (!*this)
-        {
-            Assert(false);
-
-            return {};
-        }
-
-        ULONG required_size = 0;
-
-        _status = ZwQueryInformationProcess(_h_process, ProcessImageFileName, 0, 0, &required_size);
-        Assert(STATUS_INFO_LENGTH_MISMATCH == _status);
-
-        if (required_size <= sizeof(UNICODE_STRING))
-        {
-            return {};
-        }
-
-        Buffer buf(required_size);
-
-        _status = ZwQueryInformationProcess(_h_process, ProcessImageFileName, buf, required_size, 0);
-        Assert(NT_SUCCESS(_status));
-
-        auto ustr_img_path = buf.Cast<PUNICODE_STRING>();
-        Assert(ustr_img_path->MaximumLength < required_size);
-
-        return MakeString(ustr_img_path);
-    }
-
-    NTSTATUS Terminate(NTSTATUS exit_status = STATUS_SUCCESS)
-    {
-        return ZwTerminateProcess(_h_process, exit_status);
-    }
-
-private:
-    HANDLE _h_process;
-};
-
-inline NTSTATUS KillProcess(ProcessId pid)
-{
-    NtProcess process(pid, PROCESS_ALL_ACCESS);
-    if (process)
-    {
-        return process.Terminate();
-    }
-    
-    return process.GetLastStatus();    
-}
-
-inline bool IsNetworkPath(const wchar_t* path)
-{
-    bool is_length_enough = [&]()
-    {
-        if (path)
-        {
-            FOR(i, size_t(-1))
-            {
-                if (0 == path[i])
-                {
-                    return false;
-                }
-                else
-                {
-                    if (i > 12)
-                    {
-                        return true;
-                    }
-                }
-            }
-        }
-
-        return false;
-    }();
-
-    if (is_length_enough)
-    {
-        return AreEqual(MakeCountedString(path, GetLength(path)), L"\\Device\\Mup\\", false);
-    }
-
-    return false;
-}
-
-inline void EnforceNullTerminated(UNICODE_STRING* str)
-{
-    Assert(str->Buffer && str->MaximumLength > str->Length);
-
-    str->Buffer[str->Length / sizeof(wchar_t)] = 0;
-}
-
-inline void EnforceNullTerminated(UNICODE_STRING& str)
-{
-    Assert(str.Buffer && str.MaximumLength > str.Length);
-
-    str.Buffer[str.Length / sizeof(wchar_t)] = 0;
-}
 
 inline NTSTATUS AdjustPrivilege(bool is_enable, ULONG privilege)
 {
@@ -500,18 +320,18 @@ inline void EnableAllPrivileges()
     }
 }
 
-class ___NtMaxPrivilege___ final
+class _NtMaxPrivilege_ final
 {
 public:
-    ___NtMaxPrivilege___()
+    _NtMaxPrivilege_()
         : _h_process_token(), _previous_state()
     {
         auto status = ZwOpenProcessTokenEx(ZwCurrentProcess(), TOKEN_ALL_ACCESS, OBJ_KERNEL_HANDLE, &_h_process_token);
         Assert(NT_SUCCESS(status) && _h_process_token);
 
         _previous_state     = MakeBuffer(4096);
-        auto previous_state = _previous_state.Cast<PTOKEN_PRIVILEGES>();
-        status = ZwAdjustPrivilegesToken(_h_process_token, true, nullptr, _previous_state.MaxSize(), previous_state, Unused<PULONG>());
+        auto previous_state = Cast<PTOKEN_PRIVILEGES>(_previous_state);
+        status = ZwAdjustPrivilegesToken(_h_process_token, true, nullptr, _previous_state.get_max_size(), previous_state, Unused<PULONG>());
         Assert(NT_SUCCESS(status));
 
         for (ULONG priv_num = SE_MIN_WELL_KNOWN_PRIVILEGE; priv_num <= SE_MAX_WELL_KNOWN_PRIVILEGE; ++priv_num)
@@ -527,11 +347,11 @@ public:
         }
     }
 
-    ~___NtMaxPrivilege___()
+    ~_NtMaxPrivilege_()
     {
         Assert(_h_process_token);
 
-        auto previous_state = _previous_state.Cast<PTOKEN_PRIVILEGES>();
+        auto previous_state = Cast<PTOKEN_PRIVILEGES>(_previous_state);
 
         auto status = ZwAdjustPrivilegesToken(_h_process_token, true, nullptr, 0, nullptr, nullptr);
         Assert(NT_SUCCESS(status));
@@ -547,24 +367,11 @@ private:
     Buffer _previous_state;
 };
 
-#define ELEVATE_TO_MAX_PRIVILEGES() ___NtMaxPrivilege___ ___UID___
+#define ELEVATE_TO_MAX_PRIVILEGES() _NtMaxPrivilege_ _UID_
 
-inline const SECURITY_DESCRIPTOR& GetNullDacl()
-{
-    static SECURITY_DESCRIPTOR sd = {};
-
-    if (0 == sd.Revision)
-    {
-        auto status = RtlCreateSecurityDescriptor(&sd, SECURITY_DESCRIPTOR_REVISION);
-        Assert(NT_SUCCESS(status));
-
-        status = RtlSetDaclSecurityDescriptor(&sd, true, nullptr, false);
-        Assert(NT_SUCCESS(status));
-    }
-
-    return sd;
-}
-
+//
+// e.g. WinXP SP2 : 0x05010200
+//
 inline ULONG GetOsVersion()
 {
     RTL_OSVERSIONINFOW ver_info = {};
@@ -610,56 +417,21 @@ inline ULONG GetOsVersion()
         return ver |= 0x0600;
     }
 
-    Abort();
-
     return ver;
 }
 
-inline WideString GenerateRandomString(ULONG seed, size_t str_length)
+template<class CharType>
+BasicString<CharType> GenerateRandomString(ULONG seed, size_t str_length)
 {
-    WideString r_str;
+    BasicString<CharType> r_str(str_length);
 
     FOR(i, str_length)
     {
-        wchar_t c = L'A' + wchar_t(RtlRandomEx(&seed) % 26);
+        CharType c = CharType('A') + CharType(RtlRandomEx(&seed) % 26);
         r_str << c;
     }
 
+    r_str[str_length] = 0;
+
     return r_str;
-}
-
-inline bool IsUsbVolume(const wchar_t* volume_dev_path, const wchar_t* usb_harddisk_dir_path)
-{
-    HANDLE h_link = {};
-    auto   status = ZwOpenDirectoryObject(&h_link, GENERIC_READ, ObjectAttributes(usb_harddisk_dir_path));
-
-    if (NT_SUCCESS(status))
-    {
-        DEFER(ZwClose(h_link));
-
-        auto buf = MakeBuffer(2048);
-        ULONG ret_len = 0;
-        ULONG ctx = 0;
-
-        status = ZwQueryDirectoryObject(h_link, buf, buf.MaxSize(), true, true, &ctx, &ret_len);
-        while (NT_SUCCESS(status))
-        {
-            auto info = buf.Cast<POBJECT_DIRECTORY_INFORMATION>();
-            if (info->TypeName.Length = GET_LITERAL_SIZE(L"SymbolicLink") && 0 == memcmp(info->TypeName.Buffer, L"SymbolicLink", info->TypeName.Length))
-            {
-                WideString sym_link;
-                sym_link << usb_harddisk_dir_path << L'\\' << MakeCountedString(info->Name);
-                auto target_path = GetExpandedNtPath(sym_link);
-
-                if (AreEqual(volume_dev_path, target_path, false))
-                {
-                    return true;
-                }
-            }
-
-            status = ZwQueryDirectoryObject(h_link, buf, buf.MaxSize(), true, false, &ctx, &ret_len);
-        }
-    }
-
-    return false;
 }

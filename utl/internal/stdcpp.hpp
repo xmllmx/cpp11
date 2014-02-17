@@ -28,6 +28,19 @@
 /**/#include <initializer_list>
 #endif
 
+#ifndef _ZW_KERNEL_MODE_
+/**/#include <cassert>
+
+/**/#define Assert  assert
+/**/#define Abort() abort()
+
+/**/#if defined(NDEBUG)
+/****/#define Print(_x_)
+/**/#else
+/****/#define Print(_x_) Log(_x_)
+/**/#endif
+#endif
+
 typedef unsigned char Byte;
 
 #include <internal/macro.hpp>
@@ -36,6 +49,6 @@ typedef unsigned char Byte;
 #include <internal/memory.hpp>
 #include <internal/array.hpp>
 #include <internal/tuple.hpp>
-#include <internal/utility.hpp>
 #include <internal/string.hpp>
+#include <internal/utility.hpp>
 #include <internal/log.hpp>

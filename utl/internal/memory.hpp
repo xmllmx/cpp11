@@ -192,3 +192,15 @@ inline Buffer MakeBuffer(size_t size, bool is_default_initialized = false)
 {
     return MakeUnique<Byte[]>(size, is_default_initialized);
 }
+
+template<class Dest, ENABLE_IF(IsPointer<Dest>::value)>
+Dest Cast(Buffer& buf)
+{
+    return reinterpret_cast<Dest>(buf.get());
+}
+
+template<class Dest, ENABLE_IF(IsPointer<Dest>::value)>
+Dest Cast(const Buffer& buf)
+{
+    return reinterpret_cast<Dest>(buf.get());
+}

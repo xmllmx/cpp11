@@ -22,9 +22,6 @@
     <Filter Include="utl\ntnative">
       <UniqueIdentifier>{6d8a0b21-82b0-4df7-805a-8af2258785bf}</UniqueIdentifier>
     </Filter>
-    <Filter Include="utl\ntkrnl">
-      <UniqueIdentifier>{e1304b61-a325-4d5d-ae1c-82780159ac17}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\utl\internal\functional.hpp">
@@ -66,20 +63,14 @@
     <ClInclude Include="..\utl\ntnative\kcmn.hpp">
       <Filter>utl\ntnative</Filter>
     </ClInclude>
-    <ClInclude Include="..\utl\ntkrnl\kmacro.hpp">
-      <Filter>utl\ntkrnl</Filter>
-    </ClInclude>
-    <ClInclude Include="..\utl\ntkrnl\knew.hpp">
-      <Filter>utl\ntkrnl</Filter>
-    </ClInclude>
-    <ClInclude Include="..\utl\ntkrnl\kcpp.hpp">
-      <Filter>utl\ntkrnl</Filter>
-    </ClInclude>
     <ClInclude Include="..\utl\ucpp.hpp">
       <Filter>utl</Filter>
     </ClInclude>
     <ClInclude Include="..\utl\internal\log.hpp">
       <Filter>utl\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\utl\path_mgr.hpp">
+      <Filter>utl</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -88,9 +79,6 @@
     </ClCompile>
     <ClCompile Include="..\utl\ntnative\zw_user_mode.cpp">
       <Filter>utl\ntnative</Filter>
-    </ClCompile>
-    <ClCompile Include="..\utl\ntkrnl\kcpp.cpp">
-      <Filter>utl\ntkrnl</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

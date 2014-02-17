@@ -11,6 +11,10 @@
 #include <cctype>
 #include <stdio.h>
 
+void PrintEx(const char* format, ...);
+void LogAnsiString(const char* sz);
+void LogWideString(const wchar_t* sz);
+
 template<class... Args>
 void FormatString(char* buf, size_t buf_size, const char* fmt, Args... args)
 {
@@ -29,18 +33,6 @@ void FormatString(char(&buf)[t_n], const char* fmt, Args... args)
 #else
     sprintf_s(buf, t_n, fmt, args...);
 #endif
-}
-
-void PrintEx(const char* format, ...);
-
-inline void LogAnsiString(const char* sz)
-{
-    PrintEx("%s", sz);
-}
-
-inline void LogWideString(const wchar_t* sz)
-{
-    PrintEx("%ws", sz);
 }
 
 enum class Radix

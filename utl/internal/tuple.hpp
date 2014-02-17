@@ -1,9 +1,9 @@
 #pragma once
 
-template <class... Args>
+template<class... Args>
 class Tuple;
 
-template <>
+template<>
 class Tuple<>
 {};
 
@@ -15,15 +15,15 @@ public:
     HeadType value;
 };
 
-template <size_t t_idx, class T>
+template<size_t t_idx, class T>
 struct TupleElement;
 
-template <size_t t_idx, class HeadType, class... TailType>
+template<size_t t_idx, class HeadType, class... TailType>
 struct TupleElement<t_idx, Tuple<HeadType, TailType...>>
     : TupleElement<t_idx - 1, Tuple<TailType...>>
 {};
 
-template <class HeadType, class... TailType>
+template<class HeadType, class... TailType>
 struct TupleElement<0, Tuple<HeadType, TailType...>>
 {
     typedef Tuple<HeadType, TailType...> type;

@@ -167,14 +167,21 @@ public:
         : _buf()
     {}
 
+    BasicString(size_t reserved_size)
+        : _buf(MakeUnique<CharType[]>(count + 1))
+    {
+        _buf.set_valid_size(0);
+    }
+
     BasicString(size_t count, CharType c)
-        : _buf(MakeUnique<CharType[]>(count + 1, true))
+        : BasicString(count + 1)
     {
         FOR(i, count)
         {
             _buf[i] = c;
         }
 
+        _buf[count] = 0;
         _buf.set_valid_size(count);
     }
 

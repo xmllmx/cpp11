@@ -15,9 +15,6 @@
 #include <suppress.h>
 #include <fltKernel.h>
 
-#include <internal/stdcpp.hpp>
-#include <ntnative/ntstring.hpp>
-
 #if !defined(_ZW_USER_MODE_)
 /**/#define _ZW_KERNEL_MODE_
 #endif
@@ -28,6 +25,9 @@
 /**/#define NTSTRSAFE_LIB
 /**/#include <ntstrsafe.h>
 #endif
+
+#include <internal/stdcpp.hpp>
+#include <ntnative/ntstring.hpp>
 
 typedef HANDLE ProcessId;
 typedef HANDLE ThreadId;

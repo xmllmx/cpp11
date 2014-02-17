@@ -603,7 +603,7 @@ constexpr size_t GetArraySize(const T(&)[t_size])
     return t_size;
 }
 
-template <class T, ENABLE_IF(IsUnsigned<T>::value)>
+template<class T, ENABLE_IF(IsUnsigned<T>::value)>
 inline constexpr auto Max()
 {
     typedef typename RemoveConstVolatileReference<T>::type type;
