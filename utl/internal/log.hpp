@@ -11,7 +11,6 @@
 #include <cctype>
 #include <stdio.h>
 
-void PrintEx(const char* format, ...);
 void LogAnsiString(const char* sz);
 void LogWideString(const wchar_t* sz);
 

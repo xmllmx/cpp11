@@ -460,17 +460,34 @@ struct IsConvertible
 	enum { value = IsVoid<From>::value && IsVoid<To>::value || __is_convertible_to(From, To) };
 };
 
+// primary template
+template<class>
+struct IsFunction : FalseType
+{};
+
+// specialization for regular functions
+template<class Ret, class... Args>
+struct IsFunction<Ret(Args...)> : TrueType
+{};
+
+// specialization for variadic functions such as std::printf
+template<class Ret, class... Args>
+struct IsFunction<Ret(Args..., ...)> : TrueType
+{};
+
 template<class T>
 struct Decay
 {
-    typedef typename RemoveReference<T>::type              NonRefType;
-    typedef typename RemoveExtent<NonRefType>::type*       DecayedArrayType;
-    typedef typename AddPointer<NonRefType>::type          OrdinaryFunction;
-    typedef typename RemoveConstVolatile<NonRefType>::type NonRefNonCvType;
-    
-    typedef typename Conditional<IsRegularFunction<NonRefType>::value, OrdinaryFunction, NonRefNonCvType>::type  NonArrayType;
-
-    typedef typename Conditional<IsArray<NonRefType>::value, DecayedArrayType, NonArrayType>::type type;
+    typedef typename RemoveReference<T>::type U;
+    typedef typename Conditional<
+        IsArray<U>::value,
+        typename RemoveExtent<U>::type*,
+        typename Conditional<
+        IsFunction<U>::value,
+        typename AddPointer<U>::type,
+        typename RemoveConstVolatile<U>::type
+        >::type
+    >::type type;
 };
 
 template<class T>

@@ -73,13 +73,21 @@ public:
         _str.Buffer        = const_cast<wchar_t*>(sz);
     }
 
-    UnicodeString(const wchar_t* sz, size_t sz_len, bool is_null_terminated = true)
+    UnicodeString(const wchar_t* sz, size_t sz_len, bool is_null_terminated)
         : _str({ USHORT(sz_len * sizeof(wchar_t)), (is_null_terminated ? sz_len + 1 : sz_len) * sizeof(wchar_t), const_cast<wchar_t*>(sz) })
     {}
 
-    template<size_t t_n>
-    UnicodeString(const wchar_t (&sz)[t_n])
-        : _str({ USHORT(n * sizeof(wchar_t)), (n - 1) * sizeof(wchar_t), const_cast<wchar_t*>(sz) })
+    template<size_t t_size>
+    UnicodeString(const wchar_t (&sz)[t_size])
+        : _str({ USHORT(t_size * sizeof(wchar_t)), (t_size - 1) * sizeof(wchar_t), const_cast<wchar_t*>(sz) })
+    {}
+
+    UnicodeString(const WideString& str)
+        : UnicodeString(str.data(), str.length(), true)
+    {}
+
+    UnicodeString(const WideRawString& str)
+        : UnicodeString(str.data(), str.length(), false)
     {}
 
     operator UNICODE_STRING*()
@@ -94,6 +102,60 @@ public:
     
 private:
     UNICODE_STRING _str;
+};
+
+class ObjectAttributes final
+{
+public:
+    ObjectAttributes()
+        : _name(), _oa()
+    {
+        InitializeObjectAttributes(&_oa, nullptr, OBJ_KERNEL_HANDLE|OBJ_CASE_INSENSITIVE, nullptr, nullptr);
+    }
+
+    ObjectAttributes(const UNICODE_STRING* name, HANDLE root_dir = 0, ULONG attributes = OBJ_KERNEL_HANDLE|OBJ_CASE_INSENSITIVE, PSECURITY_DESCRIPTOR sec_info = 0)
+        : _name(name), _oa()
+    {
+        InitializeObjectAttributes(&_oa, _name, attributes, root_dir, sec_info);
+    }
+
+    ObjectAttributes(const wchar_t* name, HANDLE root_dir = 0, ULONG attributes = OBJ_KERNEL_HANDLE|OBJ_CASE_INSENSITIVE, PSECURITY_DESCRIPTOR sec_info = 0)
+        : _name(name), _oa()
+    {
+        InitializeObjectAttributes(&_oa, _name, attributes, root_dir, sec_info);
+    }
+
+    ObjectAttributes(const wchar_t* sz_name, size_t sz_name_len, HANDLE root_dir = 0, ULONG attributes = OBJ_KERNEL_HANDLE|OBJ_CASE_INSENSITIVE, PSECURITY_DESCRIPTOR sec_info = 0)
+        : _name(sz_name, sz_name_len, false), _oa()
+    {
+        InitializeObjectAttributes(&_oa, _name, attributes, root_dir, sec_info);
+    }
+
+    ObjectAttributes(const WideString& str_name, HANDLE root_dir = 0, ULONG attributes = OBJ_KERNEL_HANDLE|OBJ_CASE_INSENSITIVE, PSECURITY_DESCRIPTOR sec_info = 0)
+        : _name(str_name.data(), str_name.length(), true), _oa()
+    {
+        InitializeObjectAttributes(&_oa, _name, attributes, root_dir, sec_info);
+    }
+
+    ObjectAttributes(const WideRawString& str_name, HANDLE root_dir = 0, ULONG attributes = OBJ_KERNEL_HANDLE|OBJ_CASE_INSENSITIVE, PSECURITY_DESCRIPTOR sec_info = 0)
+        : _name(str_name.data(), str_name.length(), false), _oa()
+    {
+        InitializeObjectAttributes(&_oa, _name, attributes, root_dir, sec_info);
+    }
+
+    operator POBJECT_ATTRIBUTES() const
+    {
+        return &const_cast<ObjectAttributes*>(this)->_oa;
+    }
+
+    const UNICODE_STRING* GetName() const
+    {
+        return _name;
+    }
+
+private:
+    UnicodeString     _name;
+    OBJECT_ATTRIBUTES _oa;
 };
 
 class LargeInteger final

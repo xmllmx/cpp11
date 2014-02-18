@@ -1,5 +1,78 @@
 #pragma once
 
+template<class T>
+class ReferenceWrapper final
+{
+public:
+    ReferenceWrapper(T&&) = delete;
+
+    ReferenceWrapper(T& obj)
+        : _ref_obj(obj)
+    {}
+    
+    ReferenceWrapper(const ReferenceWrapper& other)
+        : _ref_obj(other._ref_obj)
+    {}
+
+    DEFINE_COPY_ASSIGNER(ReferenceWrapper);
+    void swap(ReferenceWrapper& other)
+    {
+        if (this != &other)
+        {
+            Swap(_ref_obj, other._ref_obj);
+        }
+    }
+
+    operator T&() const
+    {
+        return _ref_obj;
+    }
+    
+    T& get() const
+    {
+        return _ref_obj;
+    }
+
+    template<class... Args >
+    typename ResultOf<T&(Args&&...)>::type operator()(Args&&... args) const
+    {
+        return _ref_obj(Forward<Args>(args...));
+    }
+
+private:
+    T& _ref_obj;
+};
+
+template<class T>
+ReferenceWrapper<T> Ref(T& obj)
+{	
+    return (ReferenceWrapper<T>(obj));
+}
+
+template<class T>
+void Ref(const T&&) = delete;
+
+template<class T>
+ReferenceWrapper<T> Ref(ReferenceWrapper<T> obj)
+{
+    return (obj);
+}
+
+template<class T>
+ReferenceWrapper<const T> CRef(const T& obj)
+{
+    return (ReferenceWrapper<const T>(obj));
+}
+
+template<class T>
+void CRef(const T&&) = delete;
+
+template<class T>
+ReferenceWrapper<const T> CRef(ReferenceWrapper<T> obj)
+{
+    return (ReferenceWrapper<const T>(obj.get()));
+}
+
 template<class GenericFunction>
 class Function;
 

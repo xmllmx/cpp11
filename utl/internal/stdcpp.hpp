@@ -52,4 +52,5 @@ typedef unsigned char Byte;
 #include <internal/tuple.hpp>
 #include <internal/string.hpp>
 #include <internal/utility.hpp>
+#include <internal/lock.hpp>
 #include <internal/log.hpp>

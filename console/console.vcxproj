@@ -79,6 +79,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\utl\internal\log.hpp" />
+    <ClInclude Include="..\utl\ntnative\ntfile.hpp" />
     <ClInclude Include="..\utl\path_mgr.hpp" />
     <ClInclude Include="..\utl\ucpp.hpp" />
     <ClInclude Include="..\utl\internal\array.hpp" />

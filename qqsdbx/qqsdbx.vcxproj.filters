@@ -39,6 +39,9 @@
     <ClCompile Include="..\utl\ntnative\zw_user_mode.cpp">
       <Filter>utl\ntnative</Filter>
     </ClCompile>
+    <ClCompile Include="..\utl\ntnative\zw_file.cpp">
+      <Filter>utl\ntnative</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="sandbox.inf">
@@ -119,6 +122,12 @@
     </ClInclude>
     <ClInclude Include="..\utl\internal\stack.hpp">
       <Filter>utl\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\utl\internal\lock.hpp">
+      <Filter>utl\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\utl\ntnative\zw_file.hpp">
+      <Filter>utl\ntnative</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
