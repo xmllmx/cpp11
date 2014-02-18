@@ -60,11 +60,75 @@ inline ULONG GetRandomSeed()
 
 Driver* CreateDriverInstance(PDRIVER_OBJECT drv_obj, PUNICODE_STRING reg_path); // The user must implement this function
 
+template<class T, ENABLE_IF(IsFundamental<T>::value || IsPointer<T>::value)>
+class SimpleTreeNode final : public ITreeNode
+{
+public:
+    bool operator <(const ITreeNode& other) const override
+    {
+        return _value < static_cast<const SimpleTreeNode&>(other)._value;
+    }
+
+    bool operator ==(const ITreeNode& other) const override
+    {
+        return _value == static_cast<const SimpleTreeNode&>(other)._value;
+    }
+
+    int GetNodeType(const ITreeNode& other) const override
+    {
+        return 0; // unused in this class
+    }
+
+public:
+    SimpleTreeNode()
+        : _value()
+    {}
+
+    SimpleTreeNode(T value)
+        : _value(value)
+    {}
+
+    SimpleTreeNode& operator =(T value)
+    {
+        _value = value;
+
+        return *this;
+    }
+
+    bool operator >(const ITreeNode& other) const
+    {
+        return _value > static_cast<const SimpleTreeNode&>(other)._value;
+    }
+
+    bool operator !=(const ITreeNode& other) const
+    {
+        return _value != static_cast<const SimpleTreeNode&>(other)._value;
+    }
+
+    bool operator <=(const ITreeNode& other) const
+    {
+        return _value <= static_cast<const SimpleTreeNode&>(other)._value;
+    }
+
+    bool operator >=(const ITreeNode& other) const
+    {
+        return _value >= static_cast<const SimpleTreeNode&>(other)._value;
+    }
+
+    operator T() const
+    {
+        return _value;
+    }
+    
+private:
+    T _value;
+};
+
 class DriverNotifyingProcessThreadCreateAndExit : public Driver
 {
 protected:
     DriverNotifyingProcessThreadCreateAndExit(PDRIVER_OBJECT drv_obj, PUNICODE_STRING reg_path, bool is_unloadable = true)
-        : Driver(drv_obj, reg_path, is_unloadable), _new_pids(CompareAvlTreeElements<ProcessId>), _lock()
+        : Driver(drv_obj, reg_path, is_unloadable), _new_pids()
     {
         PsSetLoadImageNotifyRoutine(_OnLoadImage);
         PsSetCreateProcessNotifyRoutine(_OnProcessCreateOrExit, FALSE);
@@ -101,18 +165,14 @@ private:
 
         bool is_found = false;
 
+        if (self_drv->_new_pids.Lookup(pid))
         {
-            LOCK_SHAREDLY(self_drv->_lock);
-            if (self_drv->_new_pids.Lookup(pid))
-            {
-                self_drv->_NotifyProcessImagePath(pid, img_path);
-                is_found = true;
-            }
+            self_drv->_NotifyProcessImagePath(pid, img_path);
+            is_found = true;
         }
 
         if (is_found)
         {
-            LOCK_EXCLUSIVELY(self_drv->_lock);
             self_drv->_new_pids.Delete(pid);
         }
     }
@@ -123,11 +183,7 @@ private:
 
         if (is_create)
         {
-            {
-                LOCK_EXCLUSIVELY(self_drv->_lock);
-                self_drv->_new_pids.Insert(pid);
-            }
-
+            self_drv->_new_pids.Insert(pid);
             self_drv->_NotifyProcessCreate(parent_pid, pid);
         }
         else
@@ -139,8 +195,6 @@ private:
     static VOID NTAPI _OnThreadCreateOrExit(HANDLE pid, HANDLE tid, BOOLEAN b_create)
     {
         auto self_drv = static_cast<DriverNotifyingProcessThreadCreateAndExit*>(g_drv);
-
-        LOCK_EXCLUSIVELY(self_drv->_lock);
 
         if (b_create)
         {
@@ -155,6 +209,5 @@ private:
     }
 
 private:
-    EResource          _lock;
-    AvlTree<ProcessId> _new_pids;
+    SplayTree<SimpleTreeNode<ProcessId>, EResource> _new_pids;
 };

@@ -4,19 +4,33 @@
 #undef RTL_USE_AVL_TABLES
 #endif
 
-template<class ElementType, class TreeTable>
+//
+// Note:
+//
+// 1. Both node type and key type must be inherited from ITreeNode;
+// 2. A node must be comparable with a key, and vice versa;
+//
+INTERFACE ITreeNode
+{
+    virtual ~ITreeNode() = default;
+    virtual bool operator <(const ITreeNode& other) const = 0;
+    virtual bool operator ==(const ITreeNode& other) const = 0;
+    virtual int GetNodeType(const ITreeNode& other) const = 0;
+};
+
+template<class TreeTable>
 RTL_GENERIC_COMPARE_RESULTS NTAPI CompareTreeElements(TreeTable*, PVOID elem_1, PVOID elem_2)
 {
-    const auto& a = *static_cast<ElementType*>(elem_1);
-    const auto& b = *static_cast<ElementType*>(elem_2);
-
-    if (a == b)
-    {
-        return GenericEqual;
-    }
-    else if (a < b)
+    const auto& a = *static_cast<ITreeNode*>(elem_1);
+    const auto& b = *static_cast<ITreeNode*>(elem_2);
+        
+    if (a < b)
     {
         return GenericLessThan;
+    }
+    else if (a == b)
+    {
+        return GenericEqual;
     }
     else
     {
@@ -24,254 +38,220 @@ RTL_GENERIC_COMPARE_RESULTS NTAPI CompareTreeElements(TreeTable*, PVOID elem_1, 
     }
 }
 
-template<class ElementType>
-RTL_GENERIC_COMPARE_RESULTS NTAPI CompareAvlTreeElements(RTL_AVL_TABLE* tree_table, PVOID elem_1, PVOID elem_2)
+inline RTL_GENERIC_COMPARE_RESULTS NTAPI CompareAvlTreeElements(RTL_AVL_TABLE* table, PVOID elem_1, PVOID elem_2)
 {
-    return CompareTreeElements<ElementType>(tree_table, elem_1, elem_2);
+    return CompareTreeElements(table, elem_1, elem_2);
 }
 
-template<class ElementType>
-RTL_GENERIC_COMPARE_RESULTS NTAPI CompareSplayTreeElements(RTL_GENERIC_TABLE* tree_table, PVOID elem_1, PVOID elem_2)
+inline RTL_GENERIC_COMPARE_RESULTS NTAPI CompareSplayTreeElements(RTL_GENERIC_TABLE* table, PVOID elem_1, PVOID elem_2)
 {
-    return CompareTreeElements<ElementType>(tree_table, elem_1, elem_2);
+    return CompareTreeElements(table, elem_1, elem_2);
 }
 
-template<class Element>
+template<class ValueType, bool t_is_avl, class LockType = NullLock, ENABLE_IF(IsConvertible<ValueType, ITreeNode>::value)>
 class Tree
 {
 public:
     DELETE_COPY(Tree);
 
-protected:
-    ~Tree()
+    Tree(Tree&& other)
+        : _table(other._table), _table(other._lock)
     {
-        Function<Element*()>     fn_get_first_elem;
-        Function<void(Element*)> fn_delete_elem;
+        other._table = nullptr;
+    }
 
-        if (_is_avl)
+    DEFINE_MOVE_ASSIGNER(Tree);
+    void swap(Tree& other)
+    {
+        if (this != &other)
         {
-            fn_get_first_elem = [this]()
-            {
-                return static_cast<Element*>(RtlGetElementGenericTableAvl(_table, 0));
-            };
+            Swap(_table, other._table);
+            Swap(_lock, other._lock);
+        }
+    }
 
-            fn_delete_elem = [this](Element* internal_elem)
+    virtual ~Tree()
+    {
+        LOCK_EXCLUSIVELY(_lock);
+
+        auto fn_clean = [this](PVOID entry)
+        {
+            this->Delete<ValueType>(*static_cast<ValueType*>(entry));
+        };
+
+        if (t_is_avl)
+        {
+            for (auto entry = RtlEnumerateGenericTableAvl(*_table, true); entry; entry = RtlEnumerateGenericTableAvl(*_table, true))
             {
-                RtlDeleteElementGenericTableAvl(_table, internal_elem);
-            };
+                fn_clean(entry);
+            }
         }
         else
         {
-            fn_get_first_elem = [this]()
+            for (auto entry = RtlEnumerateGenericTable(*_table, true); entry; entry = RtlEnumerateGenericTable(*_table, true))
             {
-                return static_cast<Element*>(RtlGetElementGenericTable(_table, 0));
-            };
-
-            fn_delete_elem = [this](Element* internal_elem)
-            {
-                RtlDeleteElementGenericTable(_table, internal_elem);
-            };
-        }
-
-        auto fn_clear = [this](Function<Element*()> fn_get_first_element, Function<void(Element*)> fn_delete_element)
-        {
-            while (auto internal_elem = fn_get_first_element())
-            {
-                Destruct(internal_elem);
-                fn_delete_element(internal_elem);
+                fn_clean(entry);
             }
-        };
-
-        fn_clear(fn_get_first_elem, fn_delete_elem);
-
-        _table = {};
-        _is_npaged = {};
-        _is_avl = {};
-    }
-
-    Tree(PRTL_AVL_COMPARE_ROUTINE fn_comp, bool is_npaged = true)
-        : _table(), _is_npaged(is_npaged), _is_avl(true), _cur_pos()
-    {
-        Assert(fn_comp);
-        RtlInitializeGenericTableAvl(_table, fn_comp, Tree::_AllocateNode<RTL_AVL_TABLE>, Tree::_FreeNode<RTL_AVL_TABLE>, 0);
-    }
-
-    Tree(PRTL_GENERIC_COMPARE_ROUTINE fn_comp, bool is_npaged = true)
-        : _table(), _allocator(), _is_npaged(is_npaged), _is_avl(false), _cur_pos()
-    {
-        Assert(fn_comp);
-        RtlInitializeGenericTable(_table, fn_comp, Tree::AllocateNode<RTL_GENERIC_TABLE>, Tree::FreeNode<RTL_GENERIC_TABLE>, 0);
+        }
     }
 
 public:
-    Element* Insert(const Element& elem)
+    bool IsEmpty() const
+    {
+        LOCK_SHAREDLY(_lock);
+
+        if (t_is_avl)
+        {
+            return RtlIsGenericTableEmptyAvl(*_table);
+        }
+        else
+        {
+            return RtlIsGenericTableEmpty(*_table);
+        }
+    }
+
+    ValueType* Insert(const ValueType& elem)
     {
         PVOID   ret_internal_elem = 0;
         BOOLEAN is_inserted = FALSE;
 
-        if (_is_avl)
+        LOCK_EXCLUSIVELY(_lock);
+
+        if (t_is_avl)
         {
-            ret_internal_elem = RtlInsertElementGenericTableAvl(_table, &const_cast<Element&>(elem), sizeof(elem), &is_inserted);
+            ret_internal_elem = RtlInsertElementGenericTableAvl(_table, &const_cast<ValueType&>(elem), sizeof(elem), &is_inserted);
         }
         else
         {
-            ret_internal_elem = RtlInsertElementGenericTable(_table, &const_cast<Element&>(elem), sizeof(elem), &is_inserted);
+            ret_internal_elem = RtlInsertElementGenericTable(_table, &const_cast<ValueType&>(elem), sizeof(elem), &is_inserted);
         }
 
-        if (!is_inserted)
+        if (is_inserted)
         {
-            ret_internal_elem = 0;
+            new (ret_internal_elem) ValueType(elem);
         }
-
-        if (ret_internal_elem)
-        {
-            new (ret_internal_elem) Element(elem);
-        }
-
-        return static_cast<Element*>(ret_internal_elem);
+        
+        return static_cast<ValueType*>(ret_internal_elem);
     }
 
-    Element* Lookup(const Element& elem)
+    ValueType* Insert(ValueType&& elem)
     {
-        PVOID ret_internal_elem = 0;
+        PVOID   ret_internal_elem = 0;
+        BOOLEAN is_inserted = FALSE;
 
-        if (_is_avl)
+        LOCK_EXCLUSIVELY(_lock);
+
+        if (t_is_avl)
         {
-            ret_internal_elem = RtlLookupElementGenericTableAvl(_table, &const_cast<Element&>(elem));
+            ret_internal_elem = RtlInsertElementGenericTableAvl(*_table, &elem, sizeof(elem), &is_inserted);
         }
         else
         {
-            ret_internal_elem = RtlLookupElementGenericTable(_table, &const_cast<Element&>(elem));
+            ret_internal_elem = RtlInsertElementGenericTable(*_table, &elem, sizeof(elem), &is_inserted);
         }
 
-        return static_cast<Element*>(ret_internal_elem);
+        if (is_inserted)
+        {
+            new (ret_internal_elem) ValueType(Move(elem));
+        }
+
+        return static_cast<ValueType*>(ret_internal_elem);
     }
 
-    bool Delete(const Element& elem)
+    template<class KeyType, ENABLE_IF(IsConvertible<KeyType, ITreeNode>::value)>
+    ValueType* Lookup(const KeyType& key) const
     {
-        if (auto entry = this->Lookup(elem))
+        PVOID ret_internal_elem = nullptr;
+
+        LOCK_SHAREDLY(_lock);
+
+        if (t_is_avl)
         {
-            DEFER(Destruct(entry));
+            ret_internal_elem = RtlLookupElementGenericTableAvl(*_table, const_cast<KeyType*>(&key));
         }
         else
         {
-            return false;
+            ret_internal_elem = RtlLookupElementGenericTable(*_table, const_cast<KeyType*>(&key));
         }
 
-        bool is_success = false;
+        return static_cast<ValueType*>(ret_internal_elem);
+    }
 
-        if (_is_avl)
+    ValueType* Lookup(const ValueType& key) const
+    {
+        return this->Lookup<ValueType>(key);
+    }
+
+    template<class KeyType, ENABLE_IF(IsConvertible<KeyType, ITreeNode>::value)>
+    bool Exists(const KeyType& key) const
+    {
+        return !!this->Lookup<KeyType>(key);
+    }
+
+    bool Exists(const ValueType& key) const
+    {
+        return !!this->Lookup(key);
+    }
+
+    template<class KeyType, ENABLE_IF(IsConvertible<KeyType, ITreeNode>::value)>
+    bool Delete(const KeyType& key)
+    {
+        LOCK_EXCLUSIVELY(_lock);
+
+        if (t_is_avl)
         {
-            is_success = !!RtlDeleteElementGenericTableAvl(_table, &const_cast<Element&>(elem));
+            return !!RtlDeleteElementGenericTableAvl(*_table, const_cast<KeyType*>(&key));
         }
         else
         {
-            is_success = !!RtlDeleteElementGenericTable(_table, &const_cast<Element&>(elem));
+            return !!RtlDeleteElementGenericTable(*_table, const_cast<KeyType*>(&key));
         }
+    }
 
-        Assert(is_success);
-
-        return is_success;
+    bool Delete(const ValueType& key)
+    {
+        return this->Delete<ValueType>(key);
     }
 
     size_t GetElementCount() const
     {
-        if (_is_avl)
+        LOCK_SHAREDLY(_lock);
+
+        if (t_is_avl)
         {
-            return RtlNumberGenericTableElementsAvl(_table);
+            return RtlNumberGenericTableElementsAvl(*_table);
         }
         else
         {
-            return RtlNumberGenericTableElements(_table);
+            return RtlNumberGenericTableElements(*_table);
         }
     }
 
-    void PrepareToIterate() const
+protected:
+    Tree(PRTL_AVL_COMPARE_ROUTINE fn_comp)
+        : _table(new _TreeTable)
     {
-        _cur_pos = nullptr;
+        RtlInitializeGenericTableAvl(*_table, fn_comp, Tree::_AllocateNode<RTL_AVL_TABLE>, Tree::_FreeNode<RTL_AVL_TABLE>, nullptr);
     }
 
-    //
-    // If prev_internal_elem is 0, then GetNext returns the first entry
-    //
-    Element* GetNext()
+    Tree(PRTL_GENERIC_COMPARE_ROUTINE fn_comp)
+        : _table(new _TreeTable)
     {
-        if (_is_avl)
-        {
-            return RtlEnumerateGenericTableWithoutSplayingAvl(_table, &_cur_pos);
-        }
-        else
-        {
-            return RtlEnumerateGenericTableWithoutSplaying(_table, &_cur_pos);
-        }
-    }
-
-    UniquePtr<Element[]> Copy()
-    {
-        auto fn_copy_assign = [this](Element& external_elem, void* internal_elem)
-        {
-            external_elem = *static_cast<Element*>(internal_elem);
-        };
-
-        return this->_Fetch(fn_copy_assign);
-    }
-
-    UniquePtr<Element[]> Move()
-    {
-        DEFER(Clear());
-
-        auto fn_move_assign = [this](Element& external_elem, void* internal_elem)
-        {
-            external_elem = Move(*static_cast<Element*>(internal_elem));
-        };
-
-        return this->_Fetch(fn_move_assign);
+        RtlInitializeGenericTable(*_table, fn_comp, Tree::_AllocateNode<RTL_GENERIC_TABLE>, Tree::_FreeNode<RTL_GENERIC_TABLE>, nullptr);
     }
 
 protected:
     template<class TableType>
     static PVOID NTAPI _AllocateNode(TableType* table, CLONG node_size)
     {
-        Assert(table && node_size);
-
-        return Allocate(node_size);
+        return operator new(node_size, PagedPool); // RtlXXXGenricTableXXX must be called at IRQL < DISPATCH_LEVEL, so PagedPool is enough.
     }
 
     template<class TableType>
     static VOID NTAPI _FreeNode(TableType* table, PVOID node)
     {
-        Assert(table && node);
-
-        Free(node);
-    }
-
-    UniquePtr<Element[]> _Fetch(Function<void(Element&, void* internal_elem)> fn_assign)
-    {
-        auto elem_count = this->GetElementCount();
-        UniquePtr<Element[]> coll(elem_count);
-
-        coll.set_valid_size(coll.get_max_size());
-
-        PVOID prev_internal_elem = 0;
-        PVOID cur_internal_elem = 0;
-
-        FOR(idx, elem_count)
-        {
-            if (_is_avl)
-            {
-                cur_internal_elem = RtlEnumerateGenericTableWithoutSplayingAvl(_table, &prev_internal_elem);
-            }
-            else
-            {
-                cur_internal_elem = RtlEnumerateGenericTableWithoutSplaying(_table, &prev_internal_elem);
-            }
-
-            Assert(cur_internal_elem);
-
-            fn_assign(coll[idx], cur_internal_elem);
-        }
-
-        return coll;
+        Destruct(static_cast<ITreeNode*>(node));
+        operator delete(node);
     }
 
 private:
@@ -292,88 +272,24 @@ private:
         RTL_AVL_TABLE     _avl_table;
     };
 
-    _TreeTable    _table;
-    bool          _is_npaged;
-    bool          _is_avl;
-    mutable PVOID _cur_pos;
+    _TreeTable*      _table;
+    mutable LockType _lock;
 };
 
-template<class Element>
-class AvlTree : public Tree<Element>
+template<class ValueType, class LockType = NullLock>
+class AvlTree : public Tree<ValueType, true, LockType>
 {
 public:
-    AvlTree(PRTL_AVL_COMPARE_ROUTINE fn_comp, bool is_npaged = true)
-        : Tree(fn_comp, is_npaged)
-    {}
-};
-
-template<class Element>
-class SplayTree : public Tree<Element>
-{
-public:
-    SplayTree(PRTL_GENERIC_COMPARE_ROUTINE fn_comp, bool is_npaged = true)
-        : Tree(fn_comp, is_npaged)
+    AvlTree()
+        : Tree(CompareAvlTreeElements)
     {}
 };
 
-template<class Element, class Lock = EResource>
-class SafeTree : protected Tree<Element>
+template<class ValueType, class LockType = NullLock>
+class SplayTree : public Tree<ValueType, false, LockType>
 {
-    static_assert(Lock::is_reentrant, "The Lock class must be reentrant");
-
 public:
-    using Tree::PrepareToIterate;
-    using Tree::GetElementCount;
-
-    SafeTree(PRTL_AVL_COMPARE_ROUTINE fn_comp, bool is_npaged = true)
-        : Tree(fn_comp, is_npaged)
+    SplayTree()
+        : Tree(CompareSplayTreeElements)
     {}
-
-    SafeTree(PRTL_GENERIC_COMPARE_ROUTINE fn_comp, bool is_npaged = true)
-        : Tree(fn_comp, is_npaged)
-    {}
-
-    Element* Insert(const Element& elem)
-    {
-        LOCK_EXCLUSIVELY(_lock);
-        return this->Tree::Insert(elem);
-    }
-
-    Element* Lookup(const Element& elem)
-    {
-        LOCK_SHAREDLY(_lock);
-        return this->Tree::Lookup(elem);
-    }
-
-    bool Delete(const Element& elem)
-    {
-        LOCK_EXCLUSIVELY(_lock);
-        return this->Tree::Delete(elem);
-    }
-
-    Element* GetNext()
-    {
-        LOCK_SHAREDLY(_lock);
-        return this->Tree::GetNext();
-    }
-
-    UniquePtr<Element[]> Copy()
-    {
-        LOCK_SHAREDLY(_lock);
-        return this->Tree::Copy();
-    }
-
-    UniquePtr<Element[]> Move()
-    {
-        LOCK_EXCLUSIVELY(_lock);
-        return this->Tree::Move();
-    }
-
-    Lock& GetLock()
-    {
-        return _lock;
-    }
-
-private:
-    Lock _lock;
 };

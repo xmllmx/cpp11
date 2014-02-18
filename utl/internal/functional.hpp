@@ -65,7 +65,7 @@ public:
     DEFINE_COPY_ASSIGNER(Function);
     DEFINE_MOVE_ASSIGNER(Function);
 
-    void swap(Function& other) noexcept
+    void swap(Function& other)
     {
         Swap(_fn, other._fn);
     }
@@ -100,7 +100,7 @@ private:
     Function<void()> _fn;
 };
 
-#define DEFER(statements) _DeferrableOperations_ _UID_([&](){ statements##; })
+#define DEFER(statements) _Deferrable_ _UID_([&](){ statements##; })
 
 template<class T, class ReturnType, class... Args>
 class MemberFunction final

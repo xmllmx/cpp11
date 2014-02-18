@@ -48,6 +48,7 @@ typedef unsigned char Byte;
 #include <internal/functional.hpp>
 #include <internal/memory.hpp>
 #include <internal/array.hpp>
+#include <internal/stack.hpp>
 #include <internal/tuple.hpp>
 #include <internal/string.hpp>
 #include <internal/utility.hpp>

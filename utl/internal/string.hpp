@@ -15,7 +15,7 @@ size_t GetLength(const CharType* sz)
 }
 
 template<class CharType>
-CharType* Copy(CharType* dst, const CharType* src, size_t count = Infinity<size_t>())
+CharType* Copy(CharType* dst, const CharType* src, size_t count = Max<size_t>())
 {
     FOR(i, count)
     {

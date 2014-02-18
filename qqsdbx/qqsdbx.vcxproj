@@ -29,6 +29,7 @@
     <ClInclude Include="..\utl\internal\log.hpp" />
     <ClInclude Include="..\utl\internal\macro.hpp" />
     <ClInclude Include="..\utl\internal\memory.hpp" />
+    <ClInclude Include="..\utl\internal\stack.hpp" />
     <ClInclude Include="..\utl\internal\stdcpp.hpp" />
     <ClInclude Include="..\utl\internal\string.hpp" />
     <ClInclude Include="..\utl\internal\traits.hpp" />

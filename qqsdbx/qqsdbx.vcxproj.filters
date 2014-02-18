@@ -117,5 +117,8 @@
     <ClInclude Include="..\utl\ntkrnl\klock.hpp">
       <Filter>utl\ntkrnl</Filter>
     </ClInclude>
+    <ClInclude Include="..\utl\internal\stack.hpp">
+      <Filter>utl\internal</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

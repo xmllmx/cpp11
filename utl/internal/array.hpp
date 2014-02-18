@@ -3,7 +3,7 @@
 template<class T, size_t t_size>
 class Array
 {
-    static_assert(IsStandardLayout<Array>::value, "utl error");
+    static_assert(IsStandardLayout<T>::value, "utl error");
 
 public:
     constexpr size_t size() const

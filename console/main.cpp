@@ -1,10 +1,9 @@
 #include <ucpp.hpp>
-#include <tuple>
+#include <stack>
+#include <ctime>
+#include <iostream>
 
 using namespace std;
 
 int main()
-{
-    auto b1 = IsBeginningWith("Hello", "he");
-    auto b2 = IsEndingWith("Hello", "dd");
-}
+{}
