@@ -1,6 +1,6 @@
 #pragma once
 
-#define _NT_NATIVE_MODE_
+#define NT_NATIVE_MODE_
 
 //
 // The following block is just for Visual Studio to correctly recognize some identifiers such as PAGE_SIZE.
@@ -15,11 +15,11 @@
 #include <suppress.h>
 #include <fltKernel.h>
 
-#if !defined(_ZW_USER_MODE_)
-/**/#define _ZW_KERNEL_MODE_
+#if !defined(ZW_USER_MODE_)
+/**/#define ZW_KERNEL_MODE_
 #endif
 
-#if defined(_ZW_KERNEL_MODE_)
+#if defined(ZW_KERNEL_MODE_)
 /**/#include <ntkrnl/kmacro.hpp>
 /**/#include <ntkrnl/knew.hpp>
 /**/#define NTSTRSAFE_LIB
@@ -212,24 +212,4 @@ public:
 
 private:
     LARGE_INTEGER _n;
-};
-
-class NtLastStatus
-{
-protected:
-    NtLastStatus(NTSTATUS status = STATUS_UNSUCCESSFUL)
-        : _status(status)
-    {}
-
-    ~NtLastStatus()
-    {}
-
-public:
-    NTSTATUS GetLastStatus() const
-    {
-        return _status;
-    }
-
-protected:
-    mutable NTSTATUS _status;
 };

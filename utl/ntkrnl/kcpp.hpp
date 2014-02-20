@@ -2,8 +2,8 @@
 
 #include <ntnative/kcmn.hpp>
 
-#ifndef _ZW_KERNEL_MODE_
-/**/#error macro '_ZW_KERNEL_MODE_' not defined
+#ifndef ZW_KERNEL_MODE_
+/**/#error macro 'ZW_KERNEL_MODE_' not defined
 #endif
 
 extern "C" NTSTATUS NTAPI ObReferenceObjectByName(PUNICODE_STRING ObjectPath,
@@ -19,8 +19,6 @@ extern "C" NTSTATUS NTAPI ObReferenceObjectByName(PUNICODE_STRING ObjectPath,
 #include <ntnative/zw_file.hpp>
 #include <ntkrnl/klock.hpp>
 #include <ntkrnl/ktree.hpp>
-
-void PrintEx(const char* format, ...);
 
 class Driver
 {

@@ -44,7 +44,7 @@ ANS_BEGIN();
 struct ZwInitializer
 {
     ZwInitializer();
-} _UID_;
+};
 
 ZwInitializer::ZwInitializer()
 {
@@ -85,4 +85,7 @@ ZwInitializer::ZwInitializer()
     LOAD_ADDRESS(RtlGetVersion);
     LOAD_ADDRESS(RtlRandomEx);
 }
+
+ZwInitializer g_zw_initializer;
+
 ANS_END();

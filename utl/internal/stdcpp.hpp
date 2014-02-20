@@ -28,7 +28,10 @@
 /**/#include <initializer_list>
 #endif
 
-#ifndef _ZW_KERNEL_MODE_
+void PrintEx(const char* fmt, ...);
+void PrintEx(const wchar_t* fmt, ...);
+
+#ifndef ZW_KERNEL_MODE_
 /**/#include <cassert>
 
 /**/#define Assert  assert
@@ -37,7 +40,7 @@
 /**/#if defined(NDEBUG)
 /****/#define Print(args)
 /**/#else
-/****/#define Print(args) Log(args)
+/****/#define Print(args) PrintEx(args)
 /**/#endif
 #endif
 

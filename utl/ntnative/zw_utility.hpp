@@ -235,7 +235,7 @@ DECLARE_FUNCTION_POINTER(RtlRandomEx);
 
 #include <ntnative/ntstring.hpp>
 
-#if defined(_ZW_USER_MODE_)
+#if defined(ZW_USER_MODE_)
 #define RtlInitUnicodeString RtlInitUnicodeStringU
 #define ZwCreateFile ZwCreateFileU
 #define ZwClose ZwCloseU
@@ -320,10 +320,10 @@ inline void EnableAllPrivileges()
     }
 }
 
-class _NtMaxPrivilege_ final
+class NtMaxPrivilege_ final
 {
 public:
-    _NtMaxPrivilege_()
+    NtMaxPrivilege_()
         : _h_process_token(), _previous_state()
     {
         auto status = ZwOpenProcessTokenEx(ZwCurrentProcess(), TOKEN_ALL_ACCESS, OBJ_KERNEL_HANDLE, &_h_process_token);
@@ -347,7 +347,7 @@ public:
         }
     }
 
-    ~_NtMaxPrivilege_()
+    ~NtMaxPrivilege_()
     {
         Assert(_h_process_token);
 
@@ -358,7 +358,6 @@ public:
         status = ZwAdjustPrivilegesToken(_h_process_token, false, previous_state, 0, nullptr, nullptr);
         Assert(NT_SUCCESS(status));
         
-
         ZwClose(_h_process_token);
     }
 
@@ -367,7 +366,7 @@ private:
     Buffer _previous_state;
 };
 
-#define ELEVATE_TO_MAX_PRIVILEGES() _NtMaxPrivilege_ _UID_
+#define ELEVATE_TO_MAX_PRIVILEGES() NtMaxPrivilege_ UID_
 
 //
 // e.g. WinXP SP2 : 0x05010200

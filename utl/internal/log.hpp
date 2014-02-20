@@ -1,6 +1,12 @@
 #pragma once
 
-#if defined(_NT_NATIVE_MODE_)
+#include <cctype>
+#include <stdio.h>
+
+void LogAnsiString(const char* sz);
+void LogWideString(const wchar_t* sz);
+
+#if defined(NT_NATIVE_MODE_)
 /**/struct _EndLine_ {};
 /**/constexpr _EndLine_ endl;
 #else
@@ -8,16 +14,10 @@
 /**/#include <iostream>
 #endif
 
-#include <cctype>
-#include <stdio.h>
-
-void LogAnsiString(const char* sz);
-void LogWideString(const wchar_t* sz);
-
 template<class... Args>
 void FormatString(char* buf, size_t buf_size, const char* fmt, Args... args)
 {
-#if defined(_ZW_KERNEL_MODE_)
+#if defined(ZW_KERNEL_MODE_)
     RtlStringCbPrintfA(buf, buf_size, fmt, args...);
 #else
     sprintf_s(buf, buf_size, fmt, args...);
@@ -27,7 +27,7 @@ void FormatString(char* buf, size_t buf_size, const char* fmt, Args... args)
 template<size_t t_n, class... Args>
 void FormatString(char(&buf)[t_n], const char* fmt, Args... args)
 {
-#if defined(_ZW_KERNEL_MODE_)
+#if defined(ZW_KERNEL_MODE_)
     RtlStringCbPrintfA(buf, t_n, fmt, args...);
 #else
     sprintf_s(buf, t_n, fmt, args...);
@@ -79,7 +79,7 @@ public:
         return *this;
     }
 
-#if defined(_NT_NATIVE_MODE_)
+#if defined(NT_NATIVE_MODE_)
     Logger& operator <<(_EndLine_)
 #else
     typedef std::basic_ostream<char, std::char_traits<char>> _OStream_;

@@ -69,9 +69,6 @@
     <ClInclude Include="..\utl\internal\log.hpp">
       <Filter>utl\internal</Filter>
     </ClInclude>
-    <ClInclude Include="..\utl\path_mgr.hpp">
-      <Filter>utl</Filter>
-    </ClInclude>
     <ClInclude Include="..\utl\ntnative\ntfile.hpp">
       <Filter>utl\ntnative</Filter>
     </ClInclude>

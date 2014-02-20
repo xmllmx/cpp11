@@ -593,25 +593,25 @@ constexpr bool IsGreaterThanOrEqualTo(T a, T b)
 }
 
 
-template<class T, ENABLE_IF(IsGreaterThan(sizeof(T), sizeof(void*)))>
+template<class T, ENABLE_IF(IsFundamental<T>::value || IsPointer<T>::value)>
 constexpr const T& Min(const T& a, const T& b)
 {
     return a < b ? a : b;
 }
 
-template<class T, ENABLE_IF(IsGreaterThan(sizeof(T), sizeof(void*)))>
+template<class T, ENABLE_IF(IsFundamental<T>::value || IsPointer<T>::value)>
 constexpr const T& Max(const T& a, const T& b)
 {
     return a < b ? b : a;
 }
 
-template<class T, ENABLE_IF(IsLessThanOrEqualTo(sizeof(T), sizeof(void*)))>
+template<class T, ENABLE_IF(!(IsFundamental<T>::value || IsPointer<T>::value))>
 constexpr T Min(T a, T b)
 {
     return a < b ? a : b;
 }
 
-template<class T, ENABLE_IF(IsLessThanOrEqualTo(sizeof(T), sizeof(void*)))>
+template<class T, ENABLE_IF(!(IsFundamental<T>::value || IsPointer<T>::value))>
 constexpr T Max(T a, T b)
 {
     return a < b ? b : a;
