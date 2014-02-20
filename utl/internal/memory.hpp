@@ -1,9 +1,9 @@
 #pragma once
 
 template<class Pointer = void*>
-Pointer Allocate(size_t size_in_bytes)
+Pointer Allocate(size_t cb_size)
 {
-    return Pointer(operator new [](size_in_bytes));
+    return Pointer(operator new [](cb_size));
 }
 
 inline void Free(void* p)
@@ -39,11 +39,11 @@ public:
     DELETE_COPY(UniquePtr);
 
     UniquePtr(UniquePtr&& other)
-        : _p(other._p), _max_size(other._max_size), _valid_size(other._valid_size)
+        : _p(other._p), _capacity(other._capacity), _size(other._size)
     {
-        other._p = nullptr;
-        other._max_size = 0;
-        other._valid_size = 0;
+        other._p        = nullptr;
+        other._capacity = 0;
+        other._size     = 0;
     }
 
     DEFINE_MOVE_ASSIGNER(UniquePtr);
@@ -52,8 +52,8 @@ public:
         if (this != &other)
         {
             Swap(_p, other._p);
-            Swap(_max_size, other._max_size);
-            Swap(_valid_size, other._valid_size);
+            Swap(_capacity, other._capacity);
+            Swap(_size, other._size);
         }
     }
 
@@ -76,7 +76,7 @@ public:
 
 public:
     UniquePtr()
-        : _p(), _max_size(), _valid_size()
+        : _p(), _capacity(), _size()
     {}
 
     UniquePtr duplicate() const
@@ -86,11 +86,13 @@ public:
             return {};
         }
 
-        auto tmp = MakeUnique<T>(_max_size);
-        FOR (i, _valid_size)
+        auto tmp = MakeUnique<T>(_capacity);
+        FOR (i, _size)
         {
             tmp._p[i] = _p[i];
         }
+
+        tmp.resize(_size);
 
         return tmp;
     }
@@ -110,14 +112,14 @@ public:
         return _p[idx];
     }
 
-    size_t get_max_size() const
+    size_t capacity() const
     {
-        return _max_size;
+        return _capacity;
     }
 
-    size_t get_valid_size() const
+    size_t size() const
     {
-        return _valid_size;
+        return _size;
     }
 
     explicit operator bool() const
@@ -137,20 +139,19 @@ public:
 
     ElementType* release()
     {
-        auto tmp = _p;
-
-        _p = nullptr;
-        _max_size = 0;
-        _valid_size = 0;
+        auto tmp  = _p;
+        _p        = nullptr;
+        _capacity = 0;
+        _size     = 0;
 
         return tmp;
     }
 
-    bool set_valid_size(size_t new_valid_size)
+    bool resize(size_t new_size)
     {
-        if (new_valid_size <= _max_size)
+        if (new_size <= _capacity)
         {
-            _valid_size = new_valid_size;
+            _size = new_size;
 
             return true;
         }
@@ -159,14 +160,14 @@ public:
     }
 
 private:
-    explicit UniquePtr(ElementType* p, size_t max_size, size_t valid_size)
-        : _p(p), _max_size(max_size), _valid_size(valid_size)
+    explicit UniquePtr(ElementType* p, size_t capacity, size_t size)
+        : _p(p), _capacity(capacity), _size(size)
     {}
 
 private:
     ElementType* _p;
-    size_t       _max_size;
-    size_t       _valid_size;
+    size_t       _capacity;
+    size_t       _size;
 };
 
 template<class T, ENABLE_IF(!IsArray<T>::value && 0 == Extent<T>::value), class... Args>

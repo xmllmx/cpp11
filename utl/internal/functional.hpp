@@ -157,14 +157,14 @@ private:
     _IFunctor* _fn;
 };
 
-class _Deferrable_ final
+class Deferrable_ final
 {
 public:
-    _Deferrable_(Function<void()> fn)
+    Deferrable_(Function<void()> fn)
         : _fn(fn)
     {}
 
-    ~_Deferrable_()
+    ~Deferrable_()
     {
         _fn();
     }
@@ -173,7 +173,7 @@ private:
     Function<void()> _fn;
 };
 
-#define DEFER(statements) _Deferrable_ _UID_([&](){ statements##; })
+#define DEFER(statements) Deferrable_ UID_([&](){ statements##; })
 
 template<class T, class ReturnType, class... Args>
 class MemberFunction final

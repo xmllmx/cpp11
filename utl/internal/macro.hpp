@@ -16,23 +16,23 @@
 /**/#define OPTIONAL
 #endif
 
-#define _LINE_NUM_AS_ID_RESULT_(macro_name) _line_num_as_id_##macro_name##_
-#define _LINE_NUM_AS_ID_(macro_name)        _LINE_NUM_AS_ID_RESULT_(macro_name)
-#define _UID_                               _LINE_NUM_AS_ID_(__LINE__)
+#define LINE_NUM_AS_ID_RESULT_(macro_name) line_num_as_id_##macro_name##_
+#define LINE_NUM_AS_ID_(macro_name)        LINE_NUM_AS_ID_RESULT_(macro_name)
+#define UID_                               LINE_NUM_AS_ID_(__LINE__)
 
-#define _UIND_IN_LINE_RESULT_(uid, n) uid##n
-#define _UID_IN_LINE_(uid, n)         _UIND_IN_LINE_RESULT_(uid, n)
-#define _UID_N_(n)                    _UID_IN_LINE_(_UID_, n)
+#define UIND_IN_LINE_RESULT_(uid, n) uid##n
+#define UID_IN_LINE_(uid, n)         UIND_IN_LINE_RESULT_(uid, n)
+#define UID_N_(n)                    UID_IN_LINE_(_UID_, n)
 
 //
 // WIDE_LITERAL is useful when you want to use an existing narrow-literal to act as a wide-literal.
 //
-#define _WIDE_LITERAL_(string_literal) L##string_literal
-#define WIDE_LITERAL(string_literal)   _WIDE_LITERAL_(string_literal)
+#define WIDE_LITERAL_(string_literal) L##string_literal
+#define WIDE_LITERAL(string_literal)  WIDE_LITERAL_(string_literal)
 
-#define _LITERAL_SIZE_NOT_INCLUDING_NULL_TERMINATOR_(str_literal) ((sizeof(str_literal str_literal) - sizeof(str_literal[0])) / 2)
+#define LITERAL_SIZE_NOT_INCLUDING_NULL_TERMINATOR_(str_literal) ((sizeof(str_literal str_literal) - sizeof(str_literal[0])) / 2)
 
-#define GET_LITERAL_LENGTH(str_literal) (_LITERAL_SIZE_NOT_INCLUDING_NULL_TERMINATOR_(str_literal) / sizeof(str_literal[0]))
+#define GET_LITERAL_LENGTH(str_literal) (LITERAL_SIZE_NOT_INCLUDING_NULL_TERMINATOR_(str_literal) / sizeof(str_literal[0]))
 #define GET_LITERAL_SIZE(str_literal)   (GET_LITERAL_LENGTH(str_literal) * sizeof(str_literal[0]))
 
 #define IS_POWER_OF_2(x) (((x) != 0) && (((x) & ((x) - 1)) == 0))

@@ -35,9 +35,9 @@
 /**/#define Abort() abort()
 
 /**/#if defined(NDEBUG)
-/****/#define Print(_x_)
+/****/#define Print(args)
 /**/#else
-/****/#define Print(_x_) Log(_x_)
+/****/#define Print(args) Log(args)
 /**/#endif
 #endif
 

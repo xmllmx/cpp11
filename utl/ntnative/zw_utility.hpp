@@ -331,7 +331,7 @@ public:
 
         _previous_state     = MakeBuffer(4096);
         auto previous_state = Cast<PTOKEN_PRIVILEGES>(_previous_state);
-        status = ZwAdjustPrivilegesToken(_h_process_token, true, nullptr, _previous_state.get_max_size(), previous_state, Unused<PULONG>());
+        status = ZwAdjustPrivilegesToken(_h_process_token, true, nullptr, _previous_state.capacity(), previous_state, Unused<PULONG>());
         Assert(NT_SUCCESS(status));
 
         for (ULONG priv_num = SE_MIN_WELL_KNOWN_PRIVILEGE; priv_num <= SE_MAX_WELL_KNOWN_PRIVILEGE; ++priv_num)

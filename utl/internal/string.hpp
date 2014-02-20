@@ -170,7 +170,7 @@ public:
     BasicString(size_t reserved_size)
         : _buf(MakeUnique<CharType[]>(count + 1))
     {
-        _buf.set_valid_size(0);
+        _buf.resize(0);
     }
 
     BasicString(size_t count, CharType c)
@@ -182,7 +182,7 @@ public:
         }
 
         _buf[count] = 0;
-        _buf.set_valid_size(count);
+        _buf.resize(count);
     }
 
     BasicString(const CharType* sz)
@@ -191,7 +191,7 @@ public:
         if (sz)
         {
             Copy(_buf.get(), sz);
-            _buf.set_valid_size(_buf.get_max_size() - 1);
+            _buf.resize(_buf.capacity() - 1);
         }
     }
 
@@ -202,7 +202,7 @@ public:
         {
             Copy(_buf.get(), sz, length);
             _buf[length] = 0; // enforce the string is null-terminated
-            _buf.set_valid_size(_buf.get_max_size() - 1);
+            _buf.resize(_buf.capacity() - 1);
         }
     }
 
@@ -212,52 +212,57 @@ public:
 
     size_t size() const
     {
-        return _buf.get_valid_size();
+        return _buf.size();
     }
 
     size_t length() const
     {
-        return _buf.get_valid_size();
+        return _buf.size();
     }
 
     bool empty() const
     {
-        return 0 == _buf.get_valid_size();
+        return 0 == _buf.size();
+    }
+
+    size_t capacity() const
+    {
+        return _buf.capacity();
     }
 
     size_t max_size() const
     {
-        return _buf.get_max_size();
+        return _buf.capacity();
     }
 
-    void reserve(size_t new_max_size)
+    void reserve(size_t new_capacity)
     {
-        if (new_max_size <= _buf.get_max_size())
+        if (new_capacity <= _buf.capacity())
         {
             return;
         }
 
-        auto tmp_buf = MakeUnique<CharType[]>(new_max_size);
+        auto tmp_buf = MakeUnique<CharType[]>(new_capacity);
         
         if (_buf)
         {
             Copy(tmp_buf.get(), _buf.get());
         }
 
-        tmp_buf.set_valid_size(_buf.get_valid_size());
+        tmp_buf.resize(_buf.size());
 
         _buf = Move(tmp_buf);
     }
 
     void shrink_to_fit()
     {
-        auto new_max_size = _buf.get_valid_size() + 1;
-        if (new_max_size < _buf.get_max_size())
+        auto new_capacity = _buf.size() + 1;
+        if (new_capacity < _buf.capacity())
         {
-            auto tmp_buf = MakeUnique<CharType[]>(new_max_size);
-            Copy(tmp_buf.get(), _buf.get(), new_max_size);
-            tmp_buf[_buf.get_valid_size() - 1] = 0; // Enforce the string is null-terminated.
-            tmp_buf.set_valid_size(_buf.get_valid_size());
+            auto tmp_buf = MakeUnique<CharType[]>(new_capacity);
+            Copy(tmp_buf.get(), _buf.get(), new_capacity);
+            tmp_buf[_buf.size() - 1] = 0; // Enforce the string is null-terminated.
+            tmp_buf.resize(_buf.size());
 
             _buf = Move(tmp_buf);
         }
@@ -285,12 +290,12 @@ public:
 
     const CharType& back() const
     {
-        return _buf[_buf.get_valid_size() - 1];
+        return _buf[_buf.size() - 1];
     }
 
     CharType& back()
     {
-        return _buf[_buf.get_valid_size() - 1];
+        return _buf[_buf.size() - 1];
     }
 
     const CharType* data() const
@@ -315,34 +320,34 @@ public:
 
     void clear()
     {
-        if (_buf.get_valid_size() > 0)
+        if (_buf.size() > 0)
         {
             _buf[0] = 0;
-            _buf.set_valid_size(0);
+            _buf.resize(0);
         }
     }
 
     void push_back(CharType c)
     {
-        if (_buf.get_valid_size() + 1 < _buf.get_max_size())
+        if (_buf.size() + 1 < _buf.capacity())
         {
-            _buf[_buf.get_valid_size()] = c;
-            _buf[_buf.get_valid_size() + 1] = 0;
-            _buf.set_valid_size(_buf.get_valid_size() + 1);
+            _buf[_buf.size()] = c;
+            _buf[_buf.size() + 1] = 0;
+            _buf.resize(_buf.size() + 1);
         }
         else
         {
-            this->reserve(2 * (_buf.get_max_size() + 2));
+            this->reserve(2 * (_buf.size() + 2));
             this->push_back(c);
         }
     }
 
     void pop_back()
     {
-        if (_buf.get_valid_size() > 0)
+        if (_buf.size() > 0)
         {
-            _buf[_buf.get_valid_size() - 1] = 0;
-            _buf.set_valid_size(_buf.get_valid_size() - 1);
+            _buf[_buf.size() - 1] = 0;
+            _buf.resize(_buf.size() - 1);
         }
     }
 
@@ -358,12 +363,12 @@ public:
             cc_size = GetLength(sz);
         }
 
-        auto new_valid_size = _buf.get_valid_size() + cc_size;
+        auto new_size = _buf.size() + cc_size;
 
         this->reserve(new_valid_size + 1);
-        memmove(&_buf[_buf.get_valid_size()], sz, cc_size * sizeof(CharType));        
-        _buf.set_valid_size(new_valid_size);
-        _buf[new_valid_size] = 0;
+        memmove(&_buf[_buf.size()], sz, cc_size * sizeof(CharType));        
+        _buf.resize(new_size);
+        _buf[new_size] = 0;
 
         return *this;
     }

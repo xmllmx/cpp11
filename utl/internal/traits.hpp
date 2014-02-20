@@ -446,13 +446,16 @@ struct RemoveAllExtents<T[]>
 };
 
 template<class T>
-struct ___IsVoid : FalseType {};
+struct IsVoid_ : FalseType
+{};
 
 template<>
-struct ___IsVoid<void>	: TrueType {};
+struct IsVoid_<void> : TrueType
+{};
 
 template<class T>
-struct IsVoid : ___IsVoid<typename RemoveConstVolatile<T>::type> {}; 
+struct IsVoid : IsVoid_<typename RemoveConstVolatile<T>::type>
+{}; 
 
 template<class From, class To>
 struct IsConvertible
@@ -541,28 +544,28 @@ struct Rank<T[]>
 {};
 
 template<class T, size_t t_dim_idx>
-struct _Extent_
+struct Extent_
     : IntegralConstant<size_t, 0>
 {};
 
 template<class T, size_t t_size>
-struct _Extent_<T[t_size], 0>
+struct Extent_<T[t_size], 0>
     : IntegralConstant<size_t, t_size>
 {};
 
 template<class T, size_t t_size, size_t t_dim_idx>
-struct _Extent_<T[t_size], t_dim_idx>
-    : _Extent_<T, t_dim_idx - 1>
+struct Extent_<T[t_size], t_dim_idx>
+    : Extent_<T, t_dim_idx - 1>
 {};
 
 template<class T, size_t t_dim_idx>
-struct _Extent_<T[], t_dim_idx>
-    : _Extent_<T, t_dim_idx - 1>
+struct Extent_<T[], t_dim_idx>
+    : Extent_<T, t_dim_idx - 1>
 {};
 
 template<class T, size_t t_dim_idx = 0>
 struct Extent
-    : _Extent_<T, t_dim_idx>
+    : Extent_<T, t_dim_idx>
 {};
 
 template<class T>

@@ -251,11 +251,11 @@ public:
     {
         auto ret_len = ULONG();
 
-        _status = _DoRead(offset, output.get_max_size(), output.get(), &ret_len);
-        Assert(ret_len <= output.get_max_size());
+        _status = _DoRead(offset, output.capacity(), output.get(), &ret_len);
+        Assert(ret_len <= output.capacity());
 
-        output.set_valid_size(ret_len);
-        Assert(output.get_valid_size() == ret_len);
+        output.resize(ret_len);
+        Assert(output.size() == ret_len);
 
         return _status;
     }
@@ -270,7 +270,7 @@ public:
 
     IO_STATUS_BLOCK Write(uint64_t offset, const Buffer& input)
     {
-        return this->Write(offset, input.get(), input.get_valid_size());
+        return this->Write(offset, input.get(), input.size());
     }
 
     IO_STATUS_BLOCK QueryInformation(FILE_INFORMATION_CLASS info_class, void* info_buf, ULONG info_buf_size) const

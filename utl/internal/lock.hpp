@@ -26,14 +26,14 @@ struct NullLock final : IReentrantLock
     void Release() override {}
 };
 
-class _GuardedLock_
+class GuardedLock_
 {
 protected:
-    _GuardedLock_(ILock* lock)
+    GuardedLock_(ILock* lock)
         : _lock(lock)
     {}
 
-    ~_GuardedLock_()
+    ~GuardedLock_()
     {
         _lock->Release();
     }
@@ -42,23 +42,23 @@ protected:
     ILock* _lock;
 };
 
-struct _GuardedLockExclusive_ : _GuardedLock_
+struct GuardedLockExclusive_ : GuardedLock_
 {
-    _GuardedLockExclusive_(ILock* lock)
-        : _GuardedLock_(lock)
+    GuardedLockExclusive_(ILock* lock)
+        : GuardedLock_(lock)
     {
         _lock->AcquireExclusive();
     }
 };
 
-struct _GuardedLockShared_ : _GuardedLock_
+struct GuardedLockShared_ : GuardedLock_
 {
-    _GuardedLockShared_(ILock* lock)
-        : _GuardedLock_(lock)
+    GuardedLockShared_(ILock* lock)
+        : GuardedLock_(lock)
     {
         _lock->AcquireShared();
     }
 };
 
-#define LOCK_EXCLUSIVELY(lock) _GuardedLockExclusive_ _UID_ (&lock)
-#define LOCK_SHAREDLY(lock)    _GuardedLockShared_    _UID_ (&lock)
+#define LOCK_EXCLUSIVELY(lock) GuardedLockExclusive_ UID_ (&lock)
+#define LOCK_SHAREDLY(lock)    GuardedLockShared_    UID_ (&lock)
