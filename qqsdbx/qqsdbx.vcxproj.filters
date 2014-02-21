@@ -25,6 +25,9 @@
     <Filter Include="utl\ntnative">
       <UniqueIdentifier>{700e04aa-a3a6-4799-99ee-c911e30099e1}</UniqueIdentifier>
     </Filter>
+    <Filter Include="utl\stdex">
+      <UniqueIdentifier>{bd75b6be-b96b-4ab7-82fd-568381356da7}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -128,6 +131,9 @@
     </ClInclude>
     <ClInclude Include="..\utl\ntnative\zw_file.hpp">
       <Filter>utl\ntnative</Filter>
+    </ClInclude>
+    <ClInclude Include="..\utl\stdex\utility.hpp">
+      <Filter>utl\stdex</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -48,6 +48,7 @@
     <ClInclude Include="..\utl\ntnative\zw_user_mode.hpp" />
     <ClInclude Include="..\utl\ntnative\zw_utility.hpp" />
     <ClInclude Include="..\utl\path_mgr.hpp" />
+    <ClInclude Include="..\utl\stdex\utility.hpp" />
     <ClInclude Include="..\utl\ucpp.hpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
