@@ -9,17 +9,20 @@ public:
         KeInitializeSpinLock(&_spin_lock);
     }
 
-    void AcquireExclusive() override
+    virtual void AcquireExclusive() override
     {
         KeAcquireSpinLock(&_spin_lock, &_old_irql);
     }
 
-    void AcquireShared() override
+    virtual void AcquireShared() override
     {
         AcquireExclusive();
     }
 
-    void Release() override;
+    virtual void Release() override
+    {
+        KeReleaseSpinLock(&_spin_lock, _old_irql);
+    }
 
 private:
     KSPIN_LOCK _spin_lock;
@@ -35,18 +38,18 @@ public:
         ExInitializeFastMutex(&_fast_mtx);
     }
 
-    void AcquireExclusive() override
+    virtual void AcquireExclusive() override
     {
         PAGED_CODE();
         ExAcquireFastMutex(&_fast_mtx);
     }
 
-    void AcquireShared() override
+    virtual void AcquireShared() override
     {
         AcquireExclusive();
     }
 
-    void Release() override
+    virtual void Release() override
     {
         PAGED_CODE();
         ExReleaseFastMutex(&_fast_mtx);
@@ -65,13 +68,13 @@ public:
         ExInitializeResourceLite(&_res);
     }
 
-    ~EResource() override
+    virtual ~EResource() override
     {
         PAGED_CODE();
         ExDeleteResourceLite(&_res);
     }
 
-    void AcquireExclusive() override
+    virtual void AcquireExclusive() override
     {
         PAGED_CODE();
 
@@ -79,7 +82,7 @@ public:
         ExAcquireResourceExclusiveLite(&_res, TRUE);
     }
 
-    void AcquireShared() override
+    virtual void AcquireShared() override
     {
         PAGED_CODE();
 
@@ -87,7 +90,7 @@ public:
         ExAcquireResourceSharedLite(&_res, TRUE);
     }
 
-    void Release() override
+    virtual void Release() override
     {
         PAGED_CODE();
 

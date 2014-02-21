@@ -387,7 +387,7 @@ public:
         }
     }
 
-    ~ZwFile() override
+    virtual ~ZwFile() override
     {
         this->ZwFile::Close();
     }
@@ -397,12 +397,12 @@ public:
         : NtFile(is_ntfs), _h_file()
     {}
     
-    bool IsValid() const override
+    virtual bool IsValid() const override
     {
         return _h_file && this->IsOk();
     }
 
-    NTSTATUS Close() override
+    virtual NTSTATUS Close() override
     {
         if (_h_file)
         {
@@ -414,7 +414,7 @@ public:
     }
     
 protected:
-    NTSTATUS _DoCreateFile(const POBJECT_ATTRIBUTES oa, ULONG create_intent, ACCESS_MASK access_mask, ULONG share_access, ULONG options) override
+    virtual NTSTATUS _DoCreateFile(const POBJECT_ATTRIBUTES oa, ULONG create_intent, ACCESS_MASK access_mask, ULONG share_access, ULONG options) override
     {
         this->Close();
 
@@ -423,7 +423,7 @@ protected:
         return _status = ZwCreateFile(&_h_file, access_mask, oa, &iosb, 0, 0, share_access, create_intent, options, 0, 0);
     }
 
-    NTSTATUS _DoRead(uint64_t offset, ULONG length, void* output_buf, ULONG* num_of_bytes_read) const override
+    virtual NTSTATUS _DoRead(uint64_t offset, ULONG length, void* output_buf, ULONG* num_of_bytes_read) const override
     {
         Assert(output_buf && num_of_bytes_read);
 
@@ -434,7 +434,7 @@ protected:
         return _status;
     }
 
-    NTSTATUS _DoWrite(uint64_t offset, ULONG length, const void* input_buf, ULONG* num_of_bytes_written) override
+    virtual NTSTATUS _DoWrite(uint64_t offset, ULONG length, const void* input_buf, ULONG* num_of_bytes_written) override
     {
         Assert(input_buf && num_of_bytes_written);
 
@@ -445,12 +445,12 @@ protected:
         return _status;
     }
 
-    NTSTATUS _DoQueryInformation(FILE_INFORMATION_CLASS info_class, PIO_STATUS_BLOCK iosb, PVOID info_buf, ULONG info_buf_size) const override
+    virtual NTSTATUS _DoQueryInformation(FILE_INFORMATION_CLASS info_class, PIO_STATUS_BLOCK iosb, PVOID info_buf, ULONG info_buf_size) const override
     {
         return _status = ZwQueryInformationFile(_h_file, iosb, info_buf, info_buf_size, info_class);
     }
 
-    NTSTATUS _DoSetInformation(FILE_INFORMATION_CLASS info_class, PIO_STATUS_BLOCK iosb, const void* info_buf, ULONG info_buf_size) override
+    virtual NTSTATUS _DoSetInformation(FILE_INFORMATION_CLASS info_class, PIO_STATUS_BLOCK iosb, const void* info_buf, ULONG info_buf_size) override
     {
         return _status = ZwSetInformationFile(_h_file, iosb, const_cast<void*>(info_buf), info_buf_size, info_class);
     }

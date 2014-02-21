@@ -65,17 +65,17 @@ template<class T, ENABLE_IF(IsFundamental<T>::value || IsPointer<T>::value)>
 class SimpleTreeNode final : public ITreeNode
 {
 public:
-    bool operator <(const ITreeNode& other) const override
+    virtual bool operator <(const ITreeNode& other) const override
     {
         return _value < static_cast<const SimpleTreeNode&>(other)._value;
     }
 
-    bool operator ==(const ITreeNode& other) const override
+    virtual bool operator ==(const ITreeNode& other) const override
     {
         return _value == static_cast<const SimpleTreeNode&>(other)._value;
     }
 
-    int GetNodeType(const ITreeNode& other) const override
+    virtual int GetNodeType(const ITreeNode& other) const override
     {
         return 0; // unused in this class
     }

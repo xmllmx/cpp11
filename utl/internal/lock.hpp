@@ -21,9 +21,9 @@ INTERFACE INonReentrantLock : ILock
 
 struct NullLock final : IReentrantLock
 {
-    void AcquireExclusive() override {}
-    void AcquireShared() override {}
-    void Release() override {}
+    virtual void AcquireExclusive() override {}
+    virtual void AcquireShared() override {}
+    virtual void Release() override {}
 };
 
 class GuardedLock_

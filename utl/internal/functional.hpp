@@ -98,12 +98,12 @@ private:
             : _fn(fn)
         {}
 
-        _IFunctor* Clone() const override
+        virtual _IFunctor* Clone() const override
         {
             return new _Functor(_fn);
         }
         
-        ResultType operator ()(Args... args) override
+        virtual ResultType operator ()(Args... args) override
         {
             return _fn(Forward<Args>(args)...);
         }

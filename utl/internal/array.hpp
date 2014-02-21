@@ -1,6 +1,6 @@
 #pragma once
 
-template<class T, size_t t_size>
+template<class T, size_t t_capacity>
 class Array
 {
     static_assert(IsStandardLayout<T>::value, "T is not standard layout");
@@ -8,7 +8,12 @@ class Array
 public:
     size_t size() const
     {
-        return t_size;
+        return _size;
+    }
+
+    constexpr size_t capacity() const
+    {
+        return t_capacity;
     }
 
     const T& operator [](size_t idx) const
@@ -32,7 +37,8 @@ public:
     }
 
 protected:
-    T _array[t_size];
+    T      _array[t_capacity];
+    size_t _size;
 };
 
 template<class T>
