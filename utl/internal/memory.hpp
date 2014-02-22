@@ -217,3 +217,94 @@ Dest Cast(const Buffer& buf)
 {
     return reinterpret_cast<Dest>(buf.get());
 }
+
+template<size_t t_block_size>
+class Block_ final
+{
+    static_assert(IsStandardLayout<Block_>::value, "utl error");
+
+public:
+    Block_()
+    {}
+
+    Block_& operator =(uint8_t n)
+    {
+        *reinterpret_cast<uint8_t*>(_buf) = n;
+
+        return *this;
+    }
+
+    operator uint8_t() const
+    {
+        return *reinterpret_cast<const uint8_t*>(_buf);
+    }
+
+private:
+    Byte _buf[t_block_size];
+};
+
+template<size_t t_block_size>
+class FixedAllocator;
+
+template<size_t t_block_size>
+class Chunk_ final
+{
+    friend class FixedAllocator<t_block_size>;
+
+    typedef Block_<t_block_size> BlockType;
+    static constexpr uint8_t sc_block_count = Max<uint8_t>(); // sc_block_count is 255 rather than 256
+
+public:
+    void Initialize()
+    {
+        _buf = MakeUnique<BlockType[]>(sc_block_count);
+        _next_free_block_idx = 0;
+        _free_blocks_available = sc_block_count;
+
+        FOR(i, sc_block_count)
+        {
+            _buf[i] = i + 1;
+        }
+    }
+
+    void* GetBlock()
+    {
+        if (_free_blocks_available > 0)
+        {
+            auto result_block = &_buf[_next_free_block_idx];
+
+            _next_free_block_idx = _buf[_next_free_block_idx];
+            --_free_blocks_available;
+
+            return result_block;
+        }
+
+        return nullptr;
+    }
+
+    void FreeBlock(void* p)
+    {
+        Assert(IsAlignedTo<t_block_size>(PtrDiffInBytes(p - &_buf[0])));
+
+        auto idx = PtrDiffInElements<BlockType>(p - &_buf[0]);
+        Assert(idx < sc_block_count);
+
+        _buf[idx] = _next_free_block_idx;
+        _next_free_block_idx = idx;
+        ++_free_blocks_available;
+    }
+    
+private:
+    UniquePtr<BlockType[]> _buf;
+    uint8_t                _next_free_block_idx;
+    uint8_t                _free_blocks_available;
+};
+
+template<size_t t_block_size>
+class FixedAllocator
+{
+    typedef Chunk_<t_block_size> Chunk;
+
+private:
+    Chunk _buf[9];
+};
