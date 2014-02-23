@@ -1,18 +1,42 @@
-//#include <ntnative/zw_user_mode.hpp>
-#include <ucpp.hpp>
 #include <iostream>
-#include <type_traits>
-#include <tuple>
-#include <ctime>
+#include <string>
 
-using namespace std;
+template<typename... Args> class X;
 
-struct A
-{
-    static int n;
+template<typename T>
+class X<T> {
+public:
+    T value;
+    X(T value_) : value(value_) {}
 };
+
+template<typename T, typename... Args>
+class X<T, Args...> : public X<Args...> {
+public:
+    T value;
+    X(T value_, Args... args) : value(value_), X<Args...>(args...) {}
+};
+
+template<typename T>
+std::ostream& operator <<(std::ostream& stream, const X<T>& value_) {
+    stream << value_.value;
+    return stream;
+}
+
+template<typename T, typename... Args>
+std::ostream& operator <<(std::ostream& stream, const X<T, Args...>& value_) {
+    stream << value_.value << " " << static_cast<X<Args...> >(value_);
+    return stream;
+}
+
+class Person : public X<std::string, int>{
+public:
+    Person(std::string name, int age) : X<std::string, int>(name, age) {}
+};
+
 
 int main()
 {
-    A::n = 0;
+    std::cout << Person("Me", 35) << std::endl;
+    return 0;
 }
