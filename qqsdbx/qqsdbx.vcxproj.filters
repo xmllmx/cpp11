@@ -45,6 +45,12 @@
     <ClCompile Include="..\utl\ntnative\zw_file.cpp">
       <Filter>utl\ntnative</Filter>
     </ClCompile>
+    <ClCompile Include="..\utl\ntkrnl\knew.cpp">
+      <Filter>utl\ntkrnl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\utl\ntkrnl\knew_default.cpp">
+      <Filter>utl\ntkrnl</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="sandbox.inf">

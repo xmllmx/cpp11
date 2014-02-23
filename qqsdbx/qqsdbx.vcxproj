@@ -12,6 +12,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\utl\ntkrnl\kcpp.cpp" />
+    <ClCompile Include="..\utl\ntkrnl\knew.cpp" />
+    <ClCompile Include="..\utl\ntkrnl\knew_default.cpp" />
     <ClCompile Include="..\utl\ntnative\zw_file.cpp" />
     <ClCompile Include="..\utl\ntnative\zw_user_mode.cpp" />
     <ClCompile Include="main.cpp" />

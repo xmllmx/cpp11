@@ -1,5 +1,7 @@
 #pragma once
 
+#define KNEW_POOL_TAG ULONG('wenk')
+
 void __cdecl operator delete(void* p);
 void __cdecl operator delete [](void* p);
 

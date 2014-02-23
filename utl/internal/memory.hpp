@@ -12,13 +12,13 @@ inline void Free(void* p)
 }
 
 template<class T>
-void Destruct(T* p)
+void Destroy(T* p)
 {
     p->~T();
 }
 
 template<class T, ENABLE_IF(!IsPointer<T>::value)>
-void Destruct(T& obj)
+void Destroy(T& obj)
 {
     obj.~T();
 }
@@ -218,52 +218,30 @@ Dest Cast(const Buffer& buf)
     return reinterpret_cast<Dest>(buf.get());
 }
 
-template<size_t t_block_size>
-class Block_ final
+template<size_t t_block_size, ENABLE_IF(IsGreaterThan<t_block_size, sizeof(char)>::value)>
+class MemoryPool final
 {
-    static_assert(IsStandardLayout<Block_>::value, "utl error");
+    typedef Byte BlockType[t_block_size];
 
 public:
-    Block_()
+    MemoryPool()
+        : _buf(), _next_free_block_idx(), _free_blocks_available()
     {}
 
-    Block_& operator =(uint8_t n)
+    MemoryPool(uint16_t max_block_count)
     {
-        *reinterpret_cast<uint8_t*>(_buf) = n;
-
-        return *this;
+        this->Initialize(max_block_count);
     }
 
-    operator uint8_t() const
+    void Initialize(uint16_t max_block_count)
     {
-        return *reinterpret_cast<const uint8_t*>(_buf);
-    }
-
-private:
-    Byte _buf[t_block_size];
-};
-
-template<size_t t_block_size>
-class FixedAllocator;
-
-template<size_t t_block_size>
-class Chunk_ final
-{
-    friend class FixedAllocator<t_block_size>;
-
-    typedef Block_<t_block_size> BlockType;
-    static constexpr uint8_t sc_block_count = Max<uint8_t>(); // sc_block_count is 255 rather than 256
-
-public:
-    void Initialize()
-    {
-        _buf = MakeUnique<BlockType[]>(sc_block_count);
+        _buf = MakeUnique<BlockType[]>(max_block_count);
         _next_free_block_idx = 0;
-        _free_blocks_available = sc_block_count;
+        _free_blocks_available = max_block_count;
 
-        FOR(i, sc_block_count)
+        FOR(i, block_count)
         {
-            _buf[i] = i + 1;
+            reinterpret_cast<uint16_t&>(_buf[i]) = i + 1;
         }
     }
 
@@ -273,38 +251,34 @@ public:
         {
             auto result_block = &_buf[_next_free_block_idx];
 
-            _next_free_block_idx = _buf[_next_free_block_idx];
+            _next_free_block_idx = reinterpret_cast<uint16_t&>(_buf[_next_free_block_idx]);
             --_free_blocks_available;
 
             return result_block;
         }
-
-        return nullptr;
+        else
+        {
+            return Allocate(t_block_size);
+        }
     }
 
     void FreeBlock(void* p)
     {
-        Assert(IsAlignedTo<t_block_size>(PtrDiffInBytes(p - &_buf[0])));
-
         auto idx = PtrDiffInElements<BlockType>(p - &_buf[0]);
-        Assert(idx < sc_block_count);
-
-        _buf[idx] = _next_free_block_idx;
-        _next_free_block_idx = idx;
-        ++_free_blocks_available;
+        if (idx < _buf.capacity())
+        {
+            _buf[idx] = _next_free_block_idx;
+            _next_free_block_idx = idx;
+            ++_free_blocks_available;
+        }
+        else
+        {
+            Free(p);
+        }
     }
     
 private:
     UniquePtr<BlockType[]> _buf;
     uint8_t                _next_free_block_idx;
     uint8_t                _free_blocks_available;
-};
-
-template<size_t t_block_size>
-class FixedAllocator
-{
-    typedef Chunk_<t_block_size> Chunk;
-
-private:
-    Chunk _buf[9];
 };

@@ -72,9 +72,6 @@
     <ClInclude Include="..\utl\ntnative\ntfile.hpp">
       <Filter>utl\ntnative</Filter>
     </ClInclude>
-    <ClInclude Include="..\utl\internal\vector.hpp">
-      <Filter>utl\internal</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">

@@ -7,13 +7,12 @@
 
 using namespace std;
 
+struct A
+{
+    static int n;
+};
+
 int main()
 {
-    START_COUNTING(n);
-    LOOP(99999999)
-    {
-        double b = 3.14159 * 2.718;
-        b *= b;
-    }
-    STOP_COUNTING(n);
+    A::n = 0;
 }

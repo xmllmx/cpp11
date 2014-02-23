@@ -250,7 +250,7 @@ protected:
     template<class TableType>
     static VOID NTAPI _FreeNode(TableType* table, PVOID node)
     {
-        Destruct(static_cast<ITreeNode*>(node));
+        Destroy(static_cast<ITreeNode*>(node));
         operator delete(node);
     }
 
