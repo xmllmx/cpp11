@@ -46,7 +46,8 @@ public:
 
     virtual void AcquireShared() override
     {
-        AcquireExclusive();
+        PAGED_CODE();
+        ExAcquireFastMutex(&_fast_mtx);
     }
 
     virtual void Release() override
@@ -77,7 +78,6 @@ public:
     virtual void AcquireExclusive() override
     {
         PAGED_CODE();
-
         KeEnterCriticalRegion();
         ExAcquireResourceExclusiveLite(&_res, TRUE);
     }
@@ -85,7 +85,6 @@ public:
     virtual void AcquireShared() override
     {
         PAGED_CODE();
-
         KeEnterCriticalRegion();
         ExAcquireResourceSharedLite(&_res, TRUE);
     }
@@ -93,7 +92,6 @@ public:
     virtual void Release() override
     {
         PAGED_CODE();
-
         ExReleaseResourceLite(&_res);
         KeLeaveCriticalRegion();
     }

@@ -42,41 +42,32 @@ inline constexpr bool IsChineseCharU16(wchar_t c)
     return (c >= 0x4E00 && c <= 0x9FA5) || (c >= 0xF900 && c <= 0xFA2D);
 }
 
-template<class UnsignedInteger>
-constexpr bool IsBitOn(UnsignedInteger bits, uint64_t offset)
+template<class T, ENABLE_IF(IsUnsigned<T>::value)>
+constexpr bool IsBitOn(T bits, uint64_t offset)
 {
-    static_assert(IsUnsigned<UnsignedInteger>::value && IsIntegral<UnsignedInteger>::value, "UnsignedInteger must be an unsigned integral type");
-
-    bits <<= offset;
-    bits >>= sizeof(bits)* CHAR_BIT - 1;
-
-    return 1 == bits;
+    return 1 == ((bits << offset) >> (sizeof(bits) * CHAR_BIT - 1));
 }
 
-template<class UnsignedInteger>
-constexpr bool IsBitOff(UnsignedInteger bits, uint64_t offset)
+template<class T, ENABLE_IF(IsUnsigned<T>::value)>
+constexpr bool IsBitOff(T bits, uint64_t offset)
 {
     return !IsBitOn(bits, offset);
 }
 
-template<class UnsignedInteger>
-void SetBitOn(UnsignedInteger& bits, uint64_t offset)
+template<class T, ENABLE_IF(IsUnsigned<T>::value)>
+void SetBitOn(T& bits, uint64_t offset)
 {
-    static_assert(IsUnsigned<UnsignedInteger>::value && IsIntegral<UnsignedInteger>::value, "UnsignedInteger must be an unsigned integral type");
-
-    UnsignedInteger n = 1;
+    T n = 1;
     n <<= sizeof(n)* CHAR_BIT - 1;
     n >>= offset;
 
     bits |= n;
 }
 
-template<class UnsignedInteger>
-void SetBitOff(UnsignedInteger& bits, uint64_t offset)
+template<class T, ENABLE_IF(IsUnsigned<T>::value)>
+void SetBitOff(T& bits, uint64_t offset)
 {
-    static_assert(IsUnsigned<UnsignedInteger>::value && IsIntegral<UnsignedInteger>::value, "UnsignedInteger must be an unsigned integral type");
-
-    UnsignedInteger n = 1;
+    T n = 1;
     n <<= sizeof(n)* CHAR_BIT - 1;
     n >>= offset;
     n = ~n;
@@ -84,20 +75,30 @@ void SetBitOff(UnsignedInteger& bits, uint64_t offset)
     bits &= n;
 }
 
-template<class FlagEnum>
-constexpr FlagEnum operator |(FlagEnum a, FlagEnum b)
+template<class T, ENABLE_IF(IsUnsigned<T>::value)>
+uint8_t GetCountOfBitOn(T bits)
 {
-    static_assert(IsEnum<FlagEnum>::value, "FlagEnum is not an enum type");
+    uint8_t count = 0;
 
-    return static_cast<FlagEnum>(int(a) | int(b));
+    FOR(i, sizeof(bits) * CHAR_BIT)
+    {
+        count += IsBitOn(bits, i);
+    }
+
+    return count;
 }
 
-template<class FlagEnum>
-constexpr FlagEnum operator |=(FlagEnum a, FlagEnum b)
+template<class T, ENABLE_IF(IsUnsigned<T>::value)>
+uint8_t GetCountOfBitOff(T bits)
 {
-    static_assert(IsEnum<FlagEnum>::value, "FlagEnum is not an enum type");
+    uint8_t count = 0;
 
-    return static_cast<FlagEnum>(int(a) |= int(b));
+    FOR(i, sizeof(value) * CHAR_BIT)
+    {
+        count += IsBitOff(bits);
+    }
+
+    return count;
 }
 
 template<class T>

@@ -33,12 +33,11 @@ public:
     static constexpr ULONG NON_NTFS_DIR_ALL_RIGHTS  = NON_NTFS_READ_DIR|NON_NTFS_WRITE_DIR|QUERY_ATTRIBUTES|SET_ATTRIBUTES|SET_EA|QUERY_EA|SET_SECURITY_INFO|QUERY_SECURITY_INFO;
 
 protected:
-    NtFile(bool is_ntfs)
+    NtFile(bool is_ntfs = true)
         : _status(), _is_ntfs(is_ntfs), _is_dir()
     {}
 
-    virtual ~NtFile() = 0
-    {}
+    virtual ~NtFile() = 0;
 
 public:
     template<class PathStringType>
@@ -236,12 +235,7 @@ public:
     {
         return _status;
     }
-
-    bool IsOk() const
-    {
-        return NT_SUCCESS(_status);
-    }
-
+    
     bool IsDirectory() const
     {
         return _is_dir;
@@ -251,7 +245,7 @@ public:
     {
         auto ret_len = ULONG();
 
-        _status = _DoRead(offset, output.capacity(), output.get(), &ret_len);
+        _DoRead(offset, output.capacity(), output.get(), &ret_len);
         Assert(ret_len <= output.capacity());
 
         output.resize(ret_len);
@@ -263,7 +257,7 @@ public:
     IO_STATUS_BLOCK Write(uint64_t offset, const void* input, ULONG input_length)
     {
         auto ret_len = ULONG();
-        _status      = _DoWrite(offset, input_length, input, &ret_len);
+        _DoWrite(offset, input_length, input, &ret_len);
 
         return { {_status}, ret_len };
     }
@@ -281,7 +275,7 @@ public:
         }
 
         IO_STATUS_BLOCK iosb = {};
-        _status = _DoQueryInformation(info_class, &iosb, info_buf, info_buf_size);
+        _DoQueryInformation(info_class, &iosb, info_buf, info_buf_size);
 
         return iosb;
     }
@@ -294,7 +288,7 @@ public:
         }
 
         IO_STATUS_BLOCK iosb = {};
-        _status = _DoSetInformation(info_class, &iosb, info, info_size);
+        _DoSetInformation(info_class, &iosb, info, info_size);
 
         return iosb;
     }
@@ -325,6 +319,35 @@ public:
         this->QueryInformation(FileStandardInformation, &info, sizeof(info));
 
         return info.EndOfFile.QuadPart;
+    }
+
+    ULONG QueryAttributes() const
+    {
+        if (!this->IsValid())
+        {
+            return Max<ULONG>();
+        }
+
+        FILE_BASIC_INFORMATION  info = {};
+        this->QueryInformation(FileBasicInformation, &info, sizeof(info));
+
+        return info.FileAttributes;
+    }
+
+    NTSTATUS SetAttributes(ULONG new_attributes)
+    {
+        if (this->IsValid())
+        {
+            FILE_BASIC_INFORMATION info = { {}, {}, {}, {}, new_attributes };
+            this->SetInformation(FileBasicInformation, &info, sizeof(info));
+        }
+
+        return _status;
+    }
+
+    bool HasAttributes(ULONG flags) const
+    {
+        return !!(this->QueryAttributes() & flags);
     }
 
 public:
@@ -399,7 +422,7 @@ public:
     
     virtual bool IsValid() const override
     {
-        return _h_file && this->IsOk();
+        return _h_file && NT_SUCCESS(_status);
     }
 
     virtual NTSTATUS Close() override

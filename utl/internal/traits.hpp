@@ -605,18 +605,6 @@ constexpr const T& Max(const T& a, const T& b)
     return a < b ? b : a;
 }
 
-template<class T, ENABLE_IF(!(IsFundamental<T>::value || IsPointer<T>::value))>
-constexpr T Min(T a, T b)
-{
-    return a < b ? a : b;
-}
-
-template<class T, ENABLE_IF(!(IsFundamental<T>::value || IsPointer<T>::value))>
-constexpr T Max(T a, T b)
-{
-    return a < b ? b : a;
-}
-
 template<class T, size_t t_size>
 constexpr size_t GetArraySize(const T(&)[t_size])
 {

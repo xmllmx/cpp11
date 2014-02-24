@@ -1,6 +1,10 @@
-#include <ntnative/kcmn.hpp>
+#include <ntkrnl/kcpp.hpp>
 
-extern "C" NTSTATUS DriverEntry(PDRIVER_OBJECT drv_obj, PUNICODE_STRING reg_path)
+Driver* CreateDriverInstance(PDRIVER_OBJECT drv_obj, PUNICODE_STRING reg_path)
 {
+    int* p = new int;
+
+    new (p) int;
+
     return 0;
 }

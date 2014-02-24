@@ -48,7 +48,7 @@
 #define NS_END() }
 
 #define LOOP(n) for (decltype(n) _dummy_ = 0; _dummy_ < (n); ++_dummy_)
-#define FOR(i, n) for (RemoveConstVolatileReference<decltype((n))>::type i = 0; i < (n); ++i)
+#define FOR(i, n) auto UID_ = (n); for (decltype(UID_) i = 0; i < UID_ ; ++i)
 
 #define XOR(a, b) (((a) && !(b)) || (!(a) && (b)))
 #define XNOR(a, b) (((a) && (b)) || (!(a) && !(b)))
