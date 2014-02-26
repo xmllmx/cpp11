@@ -568,38 +568,43 @@ struct Extent
     : Extent_<T, t_dim_idx>
 {};
 
-template<class T>
+template<class T, ENABLE_IF(IsIntegral<T>::value)>
 constexpr bool IsLessThan(T a, T b)
 {
     return a < b;
 }
 
-template<class T>
+template<class T, ENABLE_IF(IsIntegral<T>::value)>
 constexpr bool IsGreaterThan(T a, T b)
 {
     return a > b;
 }
 
-template<class T>
+template<class T, ENABLE_IF(IsIntegral<T>::value)>
 constexpr bool IsLessThanOrEqualTo(T a, T b)
 {
     return a <= b;
 }
 
-template<class T>
+template<class T, ENABLE_IF(IsIntegral<T>::value)>
 constexpr bool IsGreaterThanOrEqualTo(T a, T b)
 {
     return a >= b;
 }
 
+template<class T, ENABLE_IF(!IsGreaterThan(sizeof(T), sizeof(void*)))>
+constexpr T Max(T a, T b)
+{
+    return a < b ? b : a;
+}
 
-template<class T, ENABLE_IF(IsFundamental<T>::value || IsPointer<T>::value)>
-constexpr const T& Min(const T& a, const T& b)
+template<class T, ENABLE_IF(!IsGreaterThan(sizeof(T), sizeof(void*)))>
+constexpr T Min(T a, T b)
 {
     return a < b ? a : b;
 }
 
-template<class T, ENABLE_IF(IsFundamental<T>::value || IsPointer<T>::value)>
+template<class T, ENABLE_IF(IsGreaterThan(sizeof(T), sizeof(void*)))>
 constexpr const T& Max(const T& a, const T& b)
 {
     return a < b ? b : a;

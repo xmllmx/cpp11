@@ -74,6 +74,11 @@ public:
         _p = nullptr;
     }
 
+    explicit operator bool() const
+    {
+        return !!_p;
+    }
+
 public:
     UniquePtr()
         : _p(), _capacity(), _size()
@@ -120,11 +125,6 @@ public:
     size_t size() const
     {
         return _size;
-    }
-
-    explicit operator bool() const
-    {
-        return !!_p;
     }
 
     ElementType* get()

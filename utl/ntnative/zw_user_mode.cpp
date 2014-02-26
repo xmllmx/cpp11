@@ -1,5 +1,5 @@
 #include <ntnative/zw_user_mode.hpp>
-#include <ntnative/zw_file.hpp>
+#include <ntnative/nt_file.hpp>
 
 #define DEFINE_FUNCTION_POINTER(function_name) function_name##Routine function_name##U = 0
 

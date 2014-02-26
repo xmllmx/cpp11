@@ -72,6 +72,9 @@
     <ClInclude Include="..\utl\ntnative\ntfile.hpp">
       <Filter>utl\ntnative</Filter>
     </ClInclude>
+    <ClInclude Include="..\utl\codecvt.hpp">
+      <Filter>utl</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">

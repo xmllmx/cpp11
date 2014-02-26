@@ -116,7 +116,7 @@ T FromStringTo(const BasicString<CharType>& str)
 }
 
 template<class CharType, class T>
-std::basic_string<CharType> ToBasicString(const T& v)
+std::basic_string<CharType> ToBasicString(T v)
 {
     std::basic_stringstream<CharType, std::char_traits<CharType>, std::allocator<CharType>> sstrm;
 
@@ -132,14 +132,26 @@ std::basic_string<CharType> ToBasicString(const T& v)
     return sstrm.str();
 }
 
-template<class T>
-std::string ToAnsiString(const T& v)
+template<class T, ENABLE_IF(!IsGreaterThan(sizeof(T), sizeof(void*)))>
+std::string ToAnsiString(T v)
 {
     return ToBasicString<char, T>(v);
 }
 
-template<class T>
-std::wstring ToWideString(const T& v)
+template<class T, ENABLE_IF(!IsGreaterThan(sizeof(T), sizeof(void*)))>
+std::wstring ToWideString(T v)
 {
     return ToBasicString<wchar_t, T>(v);
+}
+
+template<class T, ENABLE_IF(IsGreaterThan(sizeof(T), sizeof(void*)))>
+std::string ToAnsiString(const T& v)
+{
+    return ToBasicString<char, const T&>(v);
+}
+
+template<class T, ENABLE_IF(IsGreaterThan(sizeof(T), sizeof(void*)))>
+std::wstring ToWideString(const T& v)
+{
+    return ToBasicString<wchar_t, const T&>(v);
 }

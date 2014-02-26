@@ -78,6 +78,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\utl\codecvt.hpp" />
     <ClInclude Include="..\utl\internal\log.hpp" />
     <ClInclude Include="..\utl\ntnative\ntfile.hpp" />
     <ClInclude Include="..\utl\ucpp.hpp" />

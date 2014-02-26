@@ -16,7 +16,7 @@ extern "C" NTSTATUS NTAPI ObReferenceObjectByName(PUNICODE_STRING ObjectPath,
                                                   PVOID* ObjectPtr);
 
 #include <ntnative/zw_utility.hpp>
-#include <ntnative/zw_file.hpp>
+#include <ntnative/nt_file.hpp>
 #include <ntkrnl/klock.hpp>
 #include <ntkrnl/ktree.hpp>
 

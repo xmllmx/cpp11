@@ -434,3 +434,98 @@ bool SubstringExists(const StringType<CharType>& str, const CharType* sub_str)
 {
     return SubstringExists(str.data(), sub_str);
 }
+
+class BoolStatusChecker
+{
+public:
+    typedef bool StatusType;
+    static const bool default_status = false;
+
+    bool operator ()(bool b) const
+    {
+        return b;
+    }
+};
+
+template<class T, class StatusCheckerType = BoolStatusChecker, ENABLE_IF(IsIntegral<StatusCheckerType::StatusType>::value)>
+class Optional final
+{
+public:
+    typedef typename StatusCheckerType::StatusType StatusType;
+
+    DEFAULT_COPY(Optional);
+    DEFAULT_MOVE(Optional);
+    Optional() = default;
+    
+    explicit operator bool() const
+    {
+        return _fn_status_checker(_status);
+    }
+
+public:
+    template<ENABLE_IF(!IsGreaterThan(sizeof(T), sizeof(void*)))>
+    Optional(T value, StatusType status = StatusCheckerType::default_status)
+        : _value(value), _status(status), _fn_status_checker()
+    {}
+    
+    template<ENABLE_IF(IsGreaterThan(sizeof(T), sizeof(void*)))>
+    Optional(const T& value, StatusType status = StatusCheckerType::default_status)
+        : _value(value), _status(status), _fn_status_checker()
+    {}
+
+    Optional(T&& value, StatusType status = StatusCheckerType::default_status)
+        : _value(Move(value)), _status(status), _fn_status_checker()
+    {}
+
+    const T* get() const
+    {
+        Assert(*this);
+
+        return &_value;
+    }
+
+    T* get()
+    {
+        Assert(*this);
+
+        return &_value;
+    }
+
+    StatusType status() const
+    {
+        return _status;
+    }
+
+    const T* operator ->() const
+    {
+        Assert(*this);
+
+        return &_value;
+    }
+
+    T* operator ->()
+    {
+        Assert(*this);
+
+        return &_value;
+    }
+    
+    const T& operator *() const
+    {
+        Assert(*this);
+
+        return _value;
+    }
+
+    T& operator *()
+    {
+        Assert(*this);
+
+        return _value;
+    }
+
+private:
+    T                 _value;
+    StatusType        _status;
+    StatusCheckerType _fn_status_checker;
+};

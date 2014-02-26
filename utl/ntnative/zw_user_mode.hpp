@@ -4,4 +4,4 @@
 
 #include <ntnative/kcmn.hpp>
 #include <ntnative/zw_utility.hpp>
-#include <ntnative/zw_file.hpp>
+#include <ntnative/nt_file.hpp>

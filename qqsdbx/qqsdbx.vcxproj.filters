@@ -42,14 +42,14 @@
     <ClCompile Include="..\utl\ntnative\zw_user_mode.cpp">
       <Filter>utl\ntnative</Filter>
     </ClCompile>
-    <ClCompile Include="..\utl\ntnative\zw_file.cpp">
-      <Filter>utl\ntnative</Filter>
-    </ClCompile>
     <ClCompile Include="..\utl\ntkrnl\knew.cpp">
       <Filter>utl\ntkrnl</Filter>
     </ClCompile>
     <ClCompile Include="..\utl\ntkrnl\knew_default.cpp">
       <Filter>utl\ntkrnl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\utl\ntnative\nt_file.cpp">
+      <Filter>utl\ntnative</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -135,11 +135,11 @@
     <ClInclude Include="..\utl\internal\lock.hpp">
       <Filter>utl\internal</Filter>
     </ClInclude>
-    <ClInclude Include="..\utl\ntnative\zw_file.hpp">
-      <Filter>utl\ntnative</Filter>
-    </ClInclude>
     <ClInclude Include="..\utl\stdex\utility.hpp">
       <Filter>utl\stdex</Filter>
+    </ClInclude>
+    <ClInclude Include="..\utl\ntnative\nt_file.hpp">
+      <Filter>utl\ntnative</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

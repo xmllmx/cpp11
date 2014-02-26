@@ -31,6 +31,9 @@ CharType* Copy(CharType* dst, const CharType* src, size_t count = Max<size_t>())
 }
 
 template<class CharType>
+class BasicString;
+
+template<class CharType>
 class RawString
 {
 public:
@@ -38,8 +41,12 @@ public:
         : _sz(), _length()
     {}
 
-    RawString(const CharType* sz, size_t length)
-        : _sz(const_cast<CharType*>(sz)), _length(length)
+    RawString(const CharType* sz, size_t length = 0)
+        : _sz(const_cast<CharType*>(sz)), _length(length ? length : GetLength(sz))
+    {}
+
+    RawString(const BasicString<CharType>& str)
+        : _sz(str.c_str()), _length(str.size())
     {}
 
     explicit operator bool() const
@@ -47,9 +54,24 @@ public:
         return !!_sz && !!_length;
     }
 
+    size_t size() const
+    {
+        return _length;
+    }
+
     size_t length() const
     {
         return _length;
+    }
+
+    CharType* c_str()
+    {
+        return _sz;
+    }
+
+    const CharType* c_str() const
+    {
+        return _sz;
     }
 
     CharType* data()
@@ -411,9 +433,3 @@ protected:
 
 typedef BasicString<char>    AnsiString;
 typedef BasicString<wchar_t> WideString;
-
-template <class CharType>
-auto MakeRawString(const BasicString<CharType>& str)
-{
-    return RawString<CharType>(str.c_str(), str.length());
-}
