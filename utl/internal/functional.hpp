@@ -173,7 +173,7 @@ private:
     Function<void()> _fn;
 };
 
-#define DEFER(statements) Deferrable_ UID_([&](){ statements##; })
+#define DEFER(statements) Deferrable_ UID_([&](){ statements ; })
 
 template<class T, class ReturnType, class... Args>
 class MemberFunction final

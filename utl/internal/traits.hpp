@@ -611,7 +611,7 @@ constexpr const T& Max(const T& a, const T& b)
 }
 
 template<class T, size_t t_size>
-constexpr size_t GetArraySize(const T(&)[t_size])
+constexpr size_t GetCapacity(const T(&)[t_size])
 {
     return t_size;
 }
