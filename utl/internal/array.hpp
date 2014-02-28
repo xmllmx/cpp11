@@ -84,7 +84,7 @@ constexpr bool IsGreaterThan(const T* buf_1, size_t buf_1_size, const T* buf_2, 
         return true;
     }
 
-    FOR(i, t_size)
+    FOR(i, buf_1_size)
     {
         if (buf_1[i] == buf_2[i])
         {
@@ -111,7 +111,7 @@ constexpr bool IsEqualTo(const T* buf_1, size_t buf_1_size, const T* buf_2, size
         return false;
     }
 
-    FOR(i, t_size)
+    FOR(i, buf_1_size)
     {
         if (buf_1[i] == buf_2[i])
         {
@@ -134,7 +134,7 @@ constexpr bool IsNotEqualTo(const T* buf_1, size_t buf_1_size, const T* buf_2, s
         return true;
     }
 
-    FOR(i, t_size)
+    FOR(i, buf_1_size)
     {
         if (buf_1[i] != buf_2[i])
         {
@@ -179,39 +179,39 @@ constexpr bool IsGreaterThanOrEqualTo(const T* buf_1, size_t buf_1_size, const T
     }
 }
 
-template<class T, size_t t_size>
-class ComparableArray final : Array<T, t_size>
+template<class T, size_t t_capacity>
+class ComparableArray final : Array<T, t_capacity>
 {
     static_assert(IsStandardLayout<ComparableArray>::value, "utl error");
 
 public:
     constexpr bool operator <(const ComparableArray& other) const
     {
-        return IsLessThan<T>(_array, t_size, other._array, t_size);
+        return IsLessThan<T>(_array, t_capacity, other._array, t_capacity);
     }
 
     constexpr bool operator >(const ComparableArray& other) const
     {
-        return IsGreaterThan<T>(_array, t_size, other._array, t_size);
+        return IsGreaterThan<T>(_array, t_capacity, other._array, t_capacity);
     }
 
     constexpr bool operator ==(const ComparableArray& other) const
     {
-        return IsEqualTo<T>(_array, t_size, other._array, t_size);
+        return IsEqualTo<T>(_array, t_capacity, other._array, t_capacity);
     }
 
     constexpr bool operator !=(const ComparableArray& other) const
     {
-        return IsNotEqualTo<T>(_array, t_size, other._array, t_size);
+        return IsNotEqualTo<T>(_array, t_capacity, other._array, t_capacity);
     }
 
     constexpr bool operator <=(const ComparableArray& other) const
     {
-        return IsLessThanOrEqualTo<T>(_array, t_size, other._array, t_size);
+        return IsLessThanOrEqualTo<T>(_array, t_capacity, other._array, t_capacity);
     }
 
     constexpr bool operator >=(const ComparableArray& other) const
     {
-        return IsGreaterThanOrEqualTo<T>(_array, t_size, other._array, t_size);
+        return IsGreaterThanOrEqualTo<T>(_array, t_capacity, other._array, t_capacity);
     }
 };

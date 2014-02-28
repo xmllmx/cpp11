@@ -285,7 +285,7 @@ public:
         return this->SetInformation(FileDispositionInformation, &info, sizeof(info));
     }
 
-    NtResult Rename(const WideRawString& target_path, bool b_replace_if_exists = false)
+    NtResult Rename(const WideStringRef& target_path, bool b_replace_if_exists = false)
     {
         auto buf  = MakeBuffer(target_path.length() * sizeof(wchar_t) + sizeof(FILE_RENAME_INFORMATION) + 1);
         auto info = Cast<PFILE_RENAME_INFORMATION>(buf);

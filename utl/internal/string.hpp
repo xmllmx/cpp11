@@ -31,22 +31,27 @@ CharType* Copy(CharType* dst, const CharType* src, size_t count = Max<size_t>())
 }
 
 template<class CharType>
-class BasicString;
+class String;
 
 template<class CharType>
-class RawString
+class StringRef final
 {
 public:
-    RawString()
+    StringRef()
         : _sz(), _length()
     {}
 
-    RawString(const CharType* sz, size_t length = 0)
+    StringRef(const CharType* sz, size_t length = 0)
         : _sz(const_cast<CharType*>(sz)), _length(length ? length : GetLength(sz))
     {}
 
-    RawString(const BasicString<CharType>& str)
-        : _sz(str.c_str()), _length(str.size())
+    StringRef(const String<CharType>& str)
+        : _sz(const_cast<CharType*>(str.c_str())), _length(str.size())
+    {}
+
+    template<size_t t_capacity>
+    StringRef(const CharType(&sz)[t_capacity])
+        : StringRef(_sz, GetLength(_sz))
     {}
 
     explicit operator bool() const
@@ -127,21 +132,21 @@ private:
     size_t    _length;
 };
 
-typedef RawString<char>    AnsiRawString;
-typedef RawString<wchar_t> WideRawString;
+typedef StringRef<char>    AnsiStringRef;
+typedef StringRef<wchar_t> WideStringRef;
 
 template<class CharType>
-class BasicString
+class String final
 {
 public:
-    DEFAULT_MOVE(BasicString);
+    DEFAULT_MOVE(String);
 
-    BasicString(const BasicString& other)
+    String(const String& other)
         : _buf(other._buf.duplicate())
     {}
 
-    DEFINE_COPY_ASSIGNER(BasicString);
-    void swap(BasicString& other)
+    DEFINE_COPY_ASSIGNER(String);
+    void swap(String& other)
     {
         if (this != &other)
         {
@@ -154,49 +159,49 @@ public:
         return _buf;
     }
 
-    bool operator <(const BasicString& other) const
+    bool operator <(const String& other) const
     {
-        return IsLessThan<BasicString>(_buf.c_str(), this->size(), other.c_str(), other.size());
+        return IsLessThan<String>(_buf.c_str(), this->size(), other.c_str(), other.size());
     }
 
-    bool operator >(const BasicString& other) const
+    bool operator >(const String& other) const
     {
-        return IsGreaterThan<BasicString>(_buf.c_str(), this->size(), other.c_str(), other.size());
+        return IsGreaterThan<String>(_buf.c_str(), this->size(), other.c_str(), other.size());
     }
 
-    bool operator ==(const BasicString& other) const
+    bool operator ==(const String& other) const
     {
-        return IsEqualTo<BasicString>(_buf.c_str(), this->size(), other.c_str(), other.size());
+        return IsEqualTo<String>(_buf.c_str(), this->size(), other.c_str(), other.size());
     }
 
-    bool operator !=(const BasicString& other) const
+    bool operator !=(const String& other) const
     {
-        return IsNotEqualTo<BasicString>(_buf.c_str(), this->size(), other.c_str(), other.size());
+        return IsNotEqualTo<String>(_buf.c_str(), this->size(), other.c_str(), other.size());
     }
 
-    bool operator <=(const BasicString& other) const
+    bool operator <=(const String& other) const
     {
-        return IsLessThanOrEqualTo<BasicString>(_buf.c_str(), this->size(), other.c_str(), other.size());
+        return IsLessThanOrEqualTo<String>(_buf.c_str(), this->size(), other.c_str(), other.size());
     }
 
-    bool operator >=(const BasicString& other) const
+    bool operator >=(const String& other) const
     {
-        return IsGreaterThanOrEqualTo<BasicString>(_buf.c_str(), this->size(), other.c_str(), other.size());
+        return IsGreaterThanOrEqualTo<String>(_buf.c_str(), this->size(), other.c_str(), other.size());
     }
 
 public:
-    BasicString()
+    String()
         : _buf()
     {}
 
-    BasicString(size_t reserved_size)
+    String(size_t reserved_size)
         : _buf(MakeUnique<CharType[]>(count + 1))
     {
         _buf.resize(0);
     }
 
-    BasicString(size_t count, CharType c)
-        : BasicString(count + 1)
+    String(size_t count, CharType c)
+        : String(count + 1)
     {
         FOR(i, count)
         {
@@ -207,7 +212,7 @@ public:
         _buf.resize(count);
     }
 
-    BasicString(const CharType* sz)
+    String(const CharType* sz)
         : _buf(sz ? MakeUnique<CharType[]>(GetLength(sz) + 1) : UniquePtr<CharType[]>())
     {
         if (sz)
@@ -217,7 +222,7 @@ public:
         }
     }
 
-    BasicString(const CharType* sz, size_t length)
+    String(const CharType* sz, size_t length)
         : _buf(length > 0 ? MakeUnique<CharType[]>(length + 1) : UniquePtr<CharType[]>())
     {
         if (length > 0)
@@ -228,8 +233,13 @@ public:
         }
     }
 
-    BasicString(const RawString<CharType>& raw_str)
-        : BasicString(raw_str.data(), raw_str.length())
+    template<size_t t_capacity>
+    String(const CharType (&sz)[t_capacity])
+        : String(sz, GetLength(sz))
+    {}
+
+    String(const StringRef<CharType>& raw_str)
+        : String(raw_str.data(), raw_str.length())
     {}
 
     size_t size() const
@@ -373,7 +383,7 @@ public:
         }
     }
 
-    BasicString& append(const CharType* sz, size_t cc_size = 0)
+    String& append(const CharType* sz, size_t cc_size = 0)
     {
         if (nullptr == sz)
         {
@@ -395,19 +405,19 @@ public:
         return *this;
     }
 
-    BasicString& append(const BasicString& other)
+    String& append(const String& other)
     {
         return this->append(other.c_str(), other.length());
     }
 
-    BasicString& operator <<(CharType c)
+    String& operator <<(CharType c)
     {
         this->push_back(c);
 
         return *this;
     }
 
-    BasicString& operator <<(const CharType* sz)
+    String& operator <<(const CharType* sz)
     {
         while (*sz)
         {
@@ -417,7 +427,7 @@ public:
         return *this;
     }
 
-    BasicString& operator <<(const BasicString& other)
+    String& operator <<(const String& other)
     {
         FOR (i, other.size())
         {
@@ -431,5 +441,35 @@ protected:
     UniquePtr<CharType[]> _buf;
 };
 
-typedef BasicString<char>    AnsiString;
-typedef BasicString<wchar_t> WideString;
+typedef String<char>    AnsiString;
+typedef String<wchar_t> WideString;
+
+template<class T, ENABLE_IF(!IsCharType<T>::value && !IsIntegral<T>::value)>
+inline void tolower(T& str)
+{
+    typedef typename RemoveConstVolatileReferencePointer<decltype((str[0]))>::type CharType;
+
+    StringRef<CharType> str_ref = str;
+
+    FOR(i, str_ref.size())
+    {
+        str_ref[i] = tolower(str_ref[i]);
+    }
+}
+
+template<class T, ENABLE_IF(!IsCharType<T>::value && !IsIntegral<T>::value)>
+inline void toupper(T& str)
+{
+    typedef typename RemoveConstVolatileReferencePointer<decltype((str[0]))>::type CharType;
+
+    StringRef<CharType> str_ref = str;
+
+    FOR(i, str_ref.size())
+    {
+        str_ref[i] = toupper(str_ref[i]);
+    }
+}
+
+template<class CharType, ENABLE_IF(IsCharType<CharType>::value)>
+const CharType* Find(const StringRef<CharType>& str, const StringRef<CharType>& sub_str, bool is_case_sensitive)
+{}

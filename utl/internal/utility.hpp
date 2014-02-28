@@ -187,8 +187,8 @@ inline void Zero(void* p, size_t size)
     memset(p, 0, size);
 }
 
-template<class T, size_t t_size>
-void Zero(T(&array_obj)[t_size])
+template<class T, size_t t_capacity>
+void Zero(T(&array_obj)[t_capacity])
 {
     Zero(array_obj, sizeof(array_obj));
 }
@@ -267,7 +267,7 @@ inline bool AreEqual(const CharType* a, const CharType* b, bool is_case_sensitiv
 }
 
 template<template<class> class StringType, class CharType, 
-    ENABLE_IF(IsSame<StringType<CharType>, BasicString<CharType>>::value || IsSame<StringType<CharType>, RawString<CharType>>::value)>
+    ENABLE_IF(IsSame<StringType<CharType>, String<CharType>>::value || IsSame<StringType<CharType>, StringRef<CharType>>::value)>
 bool AreEqual(const StringType<CharType>& str_a, const StringType<CharType>& str_b, bool is_case_sensitive = true)
 {
     if (str_a.length() == str_b.length())
@@ -287,7 +287,7 @@ bool AreEqual(const StringType<CharType>& str_a, const StringType<CharType>& str
 }
 
 template<template<class> class StringType, class CharType, ENABLE_IF(IsCharType<CharType>::value)>
-bool IsBeginningWith(const StringType<CharType>& str, const CharType* sub_str, size_t sub_str_length, bool is_case_sensitive = true)
+bool BeginsWith(const StringType<CharType>& str, const CharType* sub_str, size_t sub_str_length, bool is_case_sensitive = true)
 {
     if (nullptr == sub_str || 0 == sub_str_length)
     {
@@ -299,17 +299,17 @@ bool IsBeginningWith(const StringType<CharType>& str, const CharType* sub_str, s
         return false;
     }
 
-    return AreEqual(RawString<CharType>(str.data(), sub_str_length), RawString<CharType>(sub_str, sub_str_length), is_case_sensitive);
+    return AreEqual(StringRef<CharType>(str.data(), sub_str_length), StringRef<CharType>(sub_str, sub_str_length), is_case_sensitive);
 }
 
 template<template<class> class StringType, class CharType, ENABLE_IF(IsCharType<CharType>::value)>
-bool IsBeginningWith(const StringType<CharType>& str, const StringType<CharType>& sub_str, bool is_case_sensitive = true)
+bool BeginsWith(const StringType<CharType>& str, const StringType<CharType>& sub_str, bool is_case_sensitive = true)
 {
-    return IsBeginningWith(str, sub_str.data(), sub_str.length(), is_case_sensitive);
+    return BeginsWith(str, sub_str.data(), sub_str.length(), is_case_sensitive);
 }
 
 template<template<class> class StringType, class CharType, ENABLE_IF(IsCharType<CharType>::value)>
-bool IsBeginningWith(const StringType<CharType>& str, const CharType* sub_str, bool is_case_sensitive = true)
+bool BeginsWith(const StringType<CharType>& str, const CharType* sub_str, bool is_case_sensitive = true)
 {
     auto length = str.length();
 
@@ -340,7 +340,7 @@ bool IsBeginningWith(const StringType<CharType>& str, const CharType* sub_str, b
 }
 
 template<class CharType, ENABLE_IF(IsCharType<CharType>::value)>
-bool IsBeginningWith(const CharType* str, const CharType* sub_str, bool is_case_sensitive = true)
+bool BeginsWith(const CharType* str, const CharType* sub_str, bool is_case_sensitive = true)
 {
     auto length = Max<size_t>();
 
@@ -376,7 +376,7 @@ bool IsBeginningWith(const CharType* str, const CharType* sub_str, bool is_case_
 }
 
 template<template<class> class StringType, class CharType, ENABLE_IF(IsCharType<CharType>::value)>
-bool IsEndingWith(const StringType<CharType>& str, const CharType* sub_str, size_t sub_str_length, bool is_case_sensitive = true)
+bool EndsWith(const StringType<CharType>& str, const CharType* sub_str, size_t sub_str_length, bool is_case_sensitive = true)
 {
     if (nullptr == sub_str || 0 == sub_str_length)
     {
@@ -388,25 +388,25 @@ bool IsEndingWith(const StringType<CharType>& str, const CharType* sub_str, size
         return false;
     }
 
-    return AreEqual(RawString<CharType>(&str[str.length() - sub_str_length], sub_str_length), RawString<CharType>(sub_str, sub_str_length), is_case_sensitive);
+    return AreEqual(StringRef<CharType>(&str[str.length() - sub_str_length], sub_str_length), StringRef<CharType>(sub_str, sub_str_length), is_case_sensitive);
 }
 
 template<template<class> class StringType, class CharType, ENABLE_IF(IsCharType<CharType>::value)>
-bool IsEndingWith(const StringType<CharType>& str, const StringType<CharType>& sub_str, bool is_case_sensitive = true)
+bool EndsWith(const StringType<CharType>& str, const StringType<CharType>& sub_str, bool is_case_sensitive = true)
 {
-    return IsEndingWith(str, &sub_str[0], sub_str.length(), is_case_sensitive);
+    return EndsWith(str, &sub_str[0], sub_str.length(), is_case_sensitive);
 }
 
 template<template<class> class StringType, class CharType, ENABLE_IF(IsCharType<CharType>::value)>
-bool IsEndingWith(const StringType<CharType>& str, const CharType* sub_str, bool is_case_sensitive = true)
+bool EndsWith(const StringType<CharType>& str, const CharType* sub_str, bool is_case_sensitive = true)
 {
-    return IsEndingWith(str, sub_str.get(), GetLength(sub_str), is_case_sensitive);
+    return EndsWith(str, sub_str.get(), GetLength(sub_str), is_case_sensitive);
 }
 
 template<class CharType, ENABLE_IF(IsCharType<CharType>::value)>
-bool IsEndingWith(const CharType* str, const CharType* sub_str, bool is_case_sensitive = true)
+bool EndsWith(const CharType* str, const CharType* sub_str, bool is_case_sensitive = true)
 {
-    return IsEndingWith(RawString<CharType>(str, GetLength(str)), RawString<CharType>(sub_str, GetLength(sub_str)), is_case_sensitive);
+    return EndsWith(StringRef<CharType>(str, GetLength(str)), StringRef<CharType>(sub_str, GetLength(sub_str)), is_case_sensitive);
 }
 
 template<class CharType, ENABLE_IF(IsCharType<CharType>::value)>
@@ -429,7 +429,7 @@ bool IsPathSeparator(CharType c)
 }
 
 template<template<class> class StringType, class CharType, 
-    ENABLE_IF(IsSame<StringType<CharType>, BasicString<CharType>>::value || IsSame<StringType<CharType>, RawString<CharType>>::value)>
+    ENABLE_IF(IsSame<StringType<CharType>, String<CharType>>::value || IsSame<StringType<CharType>, StringRef<CharType>>::value)>
 bool SubstringExists(const StringType<CharType>& str, const CharType* sub_str)
 {
     return SubstringExists(str.data(), sub_str);
@@ -529,3 +529,25 @@ private:
     StatusType        _status;
     StatusCheckerType _fn_status_checker;
 };
+
+template<class CharType, ENABLE_IF(IsCharType<CharType>::value)>
+inline CharType tolower(CharType c)
+{
+    if (c <= CharType('Z') && c >= CharType('A'))
+    {
+        c = CharType(CharType('a') + (c - CharType('A')));
+    }
+
+    return c;
+}
+
+template<class CharType, ENABLE_IF(IsCharType<CharType>::value)>
+inline CharType toupper(CharType c)
+{
+    if (c <= CharType('z') && c >= CharType('a'))
+    {
+        c = CharType(CharType('A') + (c - CharType('a')));
+    }
+
+    return c;
+}

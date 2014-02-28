@@ -2,7 +2,7 @@
 
 #if defined(_MSC_VER)
     //
-    // 'const size_t Array<T,t_size>::size(void) const' : 
+    // 'const size_t Array<T, t_capacity>::size(void) const' : 
     // 'constexpr' was ignored (class literal types are not yet supported)
     //
 /**/#pragma warning(disable : 4425)

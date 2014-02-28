@@ -533,8 +533,8 @@ struct Rank
     : IntegralConstant<size_t, 0>
 {};
 
-template<class T, size_t t_size>
-struct Rank<T[t_size]>
+template<class T, size_t t_capacity>
+struct Rank<T[t_capacity]>
     : IntegralConstant<size_t, Rank<T>::value + 1>
 {};
 
@@ -548,13 +548,13 @@ struct Extent_
     : IntegralConstant<size_t, 0>
 {};
 
-template<class T, size_t t_size>
-struct Extent_<T[t_size], 0>
-    : IntegralConstant<size_t, t_size>
+template<class T, size_t t_capacity>
+struct Extent_<T[t_capacity], 0>
+    : IntegralConstant<size_t, t_capacity>
 {};
 
-template<class T, size_t t_size, size_t t_dim_idx>
-struct Extent_<T[t_size], t_dim_idx>
+template<class T, size_t t_capacity, size_t t_dim_idx>
+struct Extent_<T[t_capacity], t_dim_idx>
     : Extent_<T, t_dim_idx - 1>
 {};
 
@@ -610,10 +610,10 @@ constexpr const T& Max(const T& a, const T& b)
     return a < b ? b : a;
 }
 
-template<class T, size_t t_size>
-constexpr size_t GetCapacity(const T(&)[t_size])
+template<class T, size_t t_capacity>
+constexpr size_t GetCapacity(const T(&)[t_capacity])
 {
-    return t_size;
+    return t_capacity;
 }
 
 template<class T, ENABLE_IF(IsUnsigned<T>::value)>

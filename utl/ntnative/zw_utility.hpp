@@ -420,9 +420,9 @@ inline ULONG GetOsVersion()
 }
 
 template<class CharType>
-BasicString<CharType> GenerateRandomString(ULONG seed, size_t str_length)
+String<CharType> GenerateRandomString(ULONG seed, size_t str_length)
 {
-    BasicString<CharType> r_str(str_length);
+    String<CharType> r_str(str_length);
 
     FOR(i, str_length)
     {

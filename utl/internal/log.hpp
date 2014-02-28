@@ -199,7 +199,7 @@ public:
     }
 
     template<class CharType>
-    Logger& operator <<(const RawString<CharType>& str)
+    Logger& operator <<(const StringRef<CharType>& str)
     {
         FOR(i, str.length())
         {
@@ -217,7 +217,7 @@ public:
     }
 
     template<class CharType>
-    Logger& operator <<(const BasicString<CharType>& str)
+    Logger& operator <<(const String<CharType>& str)
     {
         return *this << MakeRawString<CharType>(str);
     }

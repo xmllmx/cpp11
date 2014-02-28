@@ -110,7 +110,7 @@ T FromStringTo(const std::basic_string<CharType>& str)
 }
 
 template<class T, class CharType>
-T FromStringTo(const BasicString<CharType>& str)
+T FromStringTo(const String<CharType>& str)
 {
     return FromStringTo<T>(str.c_str());
 }

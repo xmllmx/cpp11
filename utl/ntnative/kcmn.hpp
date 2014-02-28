@@ -77,16 +77,16 @@ public:
         : _str({ USHORT(sz_len * sizeof(wchar_t)), (is_null_terminated ? sz_len + 1 : sz_len) * sizeof(wchar_t), const_cast<wchar_t*>(sz) })
     {}
 
-    template<size_t t_size>
-    UnicodeString(const wchar_t (&sz)[t_size])
-        : _str({ USHORT(t_size * sizeof(wchar_t)), (t_size - 1) * sizeof(wchar_t), const_cast<wchar_t*>(sz) })
+    template<size_t t_capacity>
+    UnicodeString(const wchar_t (&sz)[t_capacity])
+        : _str({ USHORT(t_capacity * sizeof(wchar_t)), (t_capacity - 1) * sizeof(wchar_t), const_cast<wchar_t*>(sz) })
     {}
 
     UnicodeString(const WideString& str)
         : UnicodeString(str.data(), str.length(), true)
     {}
 
-    UnicodeString(const WideRawString& str)
+    UnicodeString(const WideStringRef& str)
         : UnicodeString(str.data(), str.length(), false)
     {}
 
@@ -137,7 +137,7 @@ public:
         InitializeObjectAttributes(&_oa, _name, attributes, root_dir, sec_info);
     }
 
-    ObjectAttributes(const WideRawString& str_name, HANDLE root_dir = 0, ULONG attributes = OBJ_KERNEL_HANDLE|OBJ_CASE_INSENSITIVE, PSECURITY_DESCRIPTOR sec_info = 0)
+    ObjectAttributes(const WideStringRef& str_name, HANDLE root_dir = 0, ULONG attributes = OBJ_KERNEL_HANDLE|OBJ_CASE_INSENSITIVE, PSECURITY_DESCRIPTOR sec_info = 0)
         : _name(str_name.data(), str_name.length(), false), _oa()
     {
         InitializeObjectAttributes(&_oa, _name, attributes, root_dir, sec_info);
