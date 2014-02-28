@@ -405,9 +405,9 @@ public:
         return *this;
     }
 
-    String& append(const String& other)
+    String& append(const StringRef<CharType>& str)
     {
-        return this->append(other.c_str(), other.length());
+        return this->append(str.c_str(), str.length());
     }
 
     String& operator <<(CharType c)
@@ -417,24 +417,9 @@ public:
         return *this;
     }
 
-    String& operator <<(const CharType* sz)
+    String& operator <<(const StringRef<CharType>& str)
     {
-        while (*sz)
-        {
-            *this << *sz++;
-        }
-
-        return *this;
-    }
-
-    String& operator <<(const String& other)
-    {
-        FOR (i, other.size())
-        {
-            *this << other[i];
-        }
-
-        return *this;
+        return this->append(str);
     }
 
 protected:
@@ -470,6 +455,194 @@ inline void toupper(T& str)
     }
 }
 
+template<class StringType1, class StringType2>
+bool Contains(const StringType1& str, const StringType2& sub_str, bool is_case_sensitive = true)
+{
+    return !!Find(str, sub_str, is_case_sensitive);
+}
+
 template<class CharType, ENABLE_IF(IsCharType<CharType>::value)>
-const CharType* Find(const StringRef<CharType>& str, const StringRef<CharType>& sub_str, bool is_case_sensitive)
-{}
+inline bool Equals(CharType a, CharType b, bool is_case_sensitive = true)
+{
+    if (is_case_sensitive)
+    {
+        return a == b;
+    }
+
+    if (IsAnsiChar(a) && IsAnsiChar(b))
+    {
+        return tolower(a) == tolower(b);
+    }
+
+    return false;
+}
+
+template<class CharType, ENABLE_IF(IsCharType<CharType>::value)>
+inline bool Equals(const CharType* a, const CharType* b, bool is_case_sensitive = true)
+{
+    if (a == b)
+    {
+        return true;
+    }
+
+    if (!a || !b)
+    {
+        return false;
+    }
+
+    if (is_case_sensitive)
+    {
+        FOR(i, Max<size_t>())
+        {
+            if (a[i] != b[i])
+            {
+                return false;
+            }
+
+            if (0 == a[i])
+            {
+                return true;
+            }
+        }
+    }
+    else
+    {
+        FOR(i, Max<size_t>())
+        {
+            if (IsAnsiChar(a[i]) && IsAnsiChar(b[i]))
+            {
+                if (tolower(a[i]) != tolower(b[i]))
+                {
+                    return false;
+                }
+            }
+            else
+            {
+                if (a[i] != b[i])
+                {
+                    return false;
+                }
+            }
+
+            if (0 == a[i])
+            {
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
+
+template<class CharType, ENABLE_IF(IsCharType<CharType>::value)>
+bool Equals(const StringRef<CharType>& str_a, const StringRef<CharType>& str_b, bool is_case_sensitive = true)
+{
+    if (str_a.length() == str_b.length())
+    {
+        FOR(i, str_a.length())
+        {
+            if (!Equals(str_a[i], str_b[i], is_case_sensitive))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    return false;
+}
+
+inline bool Equals(const AnsiStringRef& str_a, const AnsiStringRef& str_b, bool is_case_sensitive = true)
+{
+    return Equals<char>(str_a, str_b, is_case_sensitive);
+}
+
+inline bool Equals(const WideStringRef& str_a, const WideStringRef& str_b, bool is_case_sensitive = true)
+{
+    return Equals<wchar_t>(str_a, str_b, is_case_sensitive);
+}
+
+template<class CharType, ENABLE_IF(IsCharType<CharType>::value)>
+bool BeginsWith(const StringRef<CharType>& str, const StringRef<CharType>& sub_str, bool is_case_sensitive = true)
+{
+    if (str.length() < sub_str.length())
+    {
+        return false;
+    }
+
+    return Equals(StringRef<CharType>(str.data(), sub_str.length()), sub_str, is_case_sensitive);
+}
+
+inline bool BeginsWith(const AnsiStringRef& str, const AnsiStringRef& sub_str, bool is_case_sensitive = true)
+{
+    return BeginsWith<char>(str, sub_str, is_case_sensitive);
+}
+
+inline bool BeginsWith(const WideStringRef& str, const WideStringRef& sub_str, bool is_case_sensitive = true)
+{
+    return BeginsWith<wchar_t>(str, sub_str, is_case_sensitive);
+}
+
+template<class CharType, ENABLE_IF(IsCharType<CharType>::value)>
+bool EndsWith(const StringRef<CharType>& str, const StringRef<CharType>& sub_str, bool is_case_sensitive = true)
+{
+    auto str_len     = str.length();
+    auto sub_str_len = sub_str.length();
+
+    if (str_len < sub_str_len)
+    {
+        return false;
+    }
+
+    return Equals(StringRef<CharType>(&str[str_len - sub_str_len], sub_str_len), sub_str, is_case_sensitive);
+}
+
+inline bool EndsWith(const AnsiStringRef& str, const AnsiStringRef& sub_str, bool is_case_sensitive = true)
+{
+    return EndsWith<char>(str, sub_str, is_case_sensitive);
+}
+
+inline bool EndsWith(const WideStringRef& str, const WideStringRef& sub_str, bool is_case_sensitive = true)
+{
+    return EndsWith<wchar_t>(str, sub_str, is_case_sensitive);
+}
+
+template<class CharType, ENABLE_IF(IsCharType<CharType>::value)>
+CharType* Find(const StringRef<CharType>& str, const StringRef<CharType>& sub_str, bool is_case_sensitive)
+{
+    auto str_size = str.size();
+    auto sub_str_size = sub_str.size();
+
+    if (str_size < sub_str_size)
+    {
+        return nullptr;
+    }
+
+    if (str_size == sub_str_size)
+    {
+        return Equals(str, sub_str, is_case_sensitive) ? const_cast<CharType*>(&str[0]) : nullptr;
+    }
+
+    auto end_pos = (str_size - sub_str_size) + 1;
+
+    FOR(i, end_pos)
+    {
+        if (Equals(StringRef<CharType>(&str[i], sub_str_size), sub_str, is_case_sensitive))
+        {
+            return const_cast<CharType*>(&str[i]);
+        }
+    }
+
+    return nullptr;
+}
+
+inline char* Find(const AnsiStringRef& str, const AnsiStringRef& sub_str, bool is_case_sensitive = true)
+{
+    return Find<char>(str, sub_str, is_case_sensitive);
+}
+
+inline wchar_t* Find(const WideStringRef& str, const WideStringRef& sub_str, bool is_case_sensitive = true)
+{
+    return Find<wchar_t>(str, sub_str, is_case_sensitive);
+}

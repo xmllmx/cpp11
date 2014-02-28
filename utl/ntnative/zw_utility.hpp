@@ -386,32 +386,32 @@ inline ULONG GetOsVersion()
         return ver;
     }
 
-    if (AreEqual(ver_info.szCSDVersion, L"Service Pack 1", false))
+    if (Equals(ver_info.szCSDVersion, L"Service Pack 1", false))
     {
         return ver |= 0x0100;
     }
 
-    if (AreEqual(ver_info.szCSDVersion, L"Service Pack 2", false))
+    if (Equals(ver_info.szCSDVersion, L"Service Pack 2", false))
     {
         return ver |= 0x0200;
     }
 
-    if (AreEqual(ver_info.szCSDVersion, L"Service Pack 3", false))
+    if (Equals(ver_info.szCSDVersion, L"Service Pack 3", false))
     {
         return ver |= 0x0300;
     }
 
-    if (AreEqual(ver_info.szCSDVersion, L"Service Pack 4", false))
+    if (Equals(ver_info.szCSDVersion, L"Service Pack 4", false))
     {
         return ver |= 0x0400;
     }
 
-    if (AreEqual(ver_info.szCSDVersion, L"Service Pack 5", false))
+    if (Equals(ver_info.szCSDVersion, L"Service Pack 5", false))
     {
         return ver |= 0x0500;
     }
 
-    if (AreEqual(ver_info.szCSDVersion, L"Service Pack 6", false))
+    if (Equals(ver_info.szCSDVersion, L"Service Pack 6", false))
     {
         return ver |= 0x0600;
     }

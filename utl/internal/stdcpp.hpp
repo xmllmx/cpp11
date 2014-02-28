@@ -40,7 +40,7 @@ void PrintEx(const wchar_t* fmt, ...);
 /**/#if defined(NDEBUG)
 /****/#define Print(args)
 /**/#else
-/****/#define Print(args) PrintEx(args)
+/****/#define Print(args) Log(args)
 /**/#endif
 #endif
 

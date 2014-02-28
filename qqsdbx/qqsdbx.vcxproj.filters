@@ -51,6 +51,9 @@
     <ClCompile Include="..\utl\ntnative\nt_file.cpp">
       <Filter>utl\ntnative</Filter>
     </ClCompile>
+    <ClCompile Include="..\utl\ucpp.cpp">
+      <Filter>utl</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="sandbox.inf">
@@ -66,9 +69,6 @@
     </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\utl\path_mgr.hpp">
-      <Filter>utl</Filter>
-    </ClInclude>
     <ClInclude Include="..\utl\ucpp.hpp">
       <Filter>utl</Filter>
     </ClInclude>

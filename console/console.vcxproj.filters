@@ -83,5 +83,8 @@
     <ClCompile Include="..\utl\ntnative\zw_user_mode.cpp">
       <Filter>utl\ntnative</Filter>
     </ClCompile>
+    <ClCompile Include="..\utl\ucpp.cpp">
+      <Filter>utl</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

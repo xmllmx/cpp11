@@ -168,21 +168,7 @@ public:
     {
         return _OutputInteger<64>("%llX", "%llx", "%llu", n);
     }
-
-    Logger& operator <<(const char* s)
-    {
-        LogAnsiString(s);
-
-        return *this;
-    }
-
-    Logger& operator <<(const wchar_t* s)
-    {
-        LogWideString(s);
-
-        return *this;
-    }
-
+    
     Logger& operator <<(Pointer p)
     {
         return _OutputInteger<64>("%p", "%p", "%p", p.Get());
@@ -198,7 +184,7 @@ public:
         return _OutputInteger<128>("%Lf", "%Lf", "%Lf", Lf);
     }
 
-    template<class CharType>
+    template<class CharType, ENABLE_IF(IsCharType<CharType>::value)>
     Logger& operator <<(const StringRef<CharType>& str)
     {
         FOR(i, str.length())
@@ -216,10 +202,14 @@ public:
         return *this;
     }
 
-    template<class CharType>
-    Logger& operator <<(const String<CharType>& str)
+    Logger& operator <<(const AnsiStringRef& str)
     {
-        return *this << MakeRawString<CharType>(str);
+        return this->operator <<<char>(str);
+    }
+
+    Logger& operator <<(const WideStringRef& str)
+    {
+        return this->operator <<<wchar_t>(str);
     }
 
 private:
@@ -258,4 +248,6 @@ private:
     Radix _cur_radix;
 };
 
-#define Log(x) Logger() << x
+extern bool g_enable_log;
+
+#define Log(x) if (g_enable_log) { Logger() << x; } 0

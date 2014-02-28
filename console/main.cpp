@@ -4,7 +4,6 @@ using namespace std;
 
 int main()
 {
-    AnsiString sz = "Hello";
-
-    toupper(sz);
+    auto p = Contains(AnsiString("Hello"), AnsiStringRef("llO"), false);
+    Log("ddd");
 }

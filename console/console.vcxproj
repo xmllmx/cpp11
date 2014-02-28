@@ -98,6 +98,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\utl\ntnative\zw_user_mode.cpp" />
+    <ClCompile Include="..\utl\ucpp.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

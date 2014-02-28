@@ -16,6 +16,7 @@
     <ClCompile Include="..\utl\ntkrnl\knew_default.cpp" />
     <ClCompile Include="..\utl\ntnative\nt_file.cpp" />
     <ClCompile Include="..\utl\ntnative\zw_user_mode.cpp" />
+    <ClCompile Include="..\utl\ucpp.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="stub.cpp" />
   </ItemGroup>
@@ -49,7 +50,6 @@
     <ClInclude Include="..\utl\ntnative\nt_file.hpp" />
     <ClInclude Include="..\utl\ntnative\zw_user_mode.hpp" />
     <ClInclude Include="..\utl\ntnative\zw_utility.hpp" />
-    <ClInclude Include="..\utl\path_mgr.hpp" />
     <ClInclude Include="..\utl\stdex\utility.hpp" />
     <ClInclude Include="..\utl\ucpp.hpp" />
   </ItemGroup>
