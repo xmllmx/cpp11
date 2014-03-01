@@ -8,16 +8,7 @@ void PrintEx(const char* format, ...)
     va_end(args);
 }
 
-void LogAnsiString(const char* sz)
-{
-    PrintEx("%s", sz);
-}
-
-void LogWideString(const wchar_t* sz)
-{
-    PrintEx("%ws", sz);
-}
-
+EndLine EndL;
 Driver* g_drv = nullptr;
 
 ZwQueryInformationProcessRoutine ZwQueryInformationProcess = nullptr;

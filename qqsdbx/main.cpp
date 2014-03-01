@@ -6,5 +6,7 @@ Driver* CreateDriverInstance(PDRIVER_OBJECT drv_obj, PUNICODE_STRING reg_path)
 
     new (p) int;
 
+    Print(Pointer(p) << EndL);
+
     return 0;
 }

@@ -28,20 +28,11 @@
 /**/#include <initializer_list>
 #endif
 
-void PrintEx(const char* fmt, ...);
-void PrintEx(const wchar_t* fmt, ...);
-
 #ifndef ZW_KERNEL_MODE_
 /**/#include <cassert>
 
 /**/#define Assert  assert
 /**/#define Abort() abort()
-
-/**/#if defined(NDEBUG)
-/****/#define Print(args)
-/**/#else
-/****/#define Print(args) Log(args)
-/**/#endif
 #endif
 
 typedef unsigned char Byte;
@@ -53,7 +44,7 @@ typedef unsigned char Byte;
 #include <internal/array.hpp>
 #include <internal/stack.hpp>
 #include <internal/tuple.hpp>
-#include <internal/string.hpp>
 #include <internal/utility.hpp>
+#include <internal/string.hpp>
 #include <internal/lock.hpp>
 #include <internal/log.hpp>

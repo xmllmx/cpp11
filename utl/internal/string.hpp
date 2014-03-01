@@ -397,7 +397,7 @@ public:
 
         auto new_size = _buf.size() + cc_size;
 
-        this->reserve(new_valid_size + 1);
+        this->reserve(new_size + 1);
         memmove(&_buf[_buf.size()], sz, cc_size * sizeof(CharType));        
         _buf.resize(new_size);
         _buf[new_size] = 0;
@@ -428,6 +428,247 @@ protected:
 
 typedef String<char>    AnsiString;
 typedef String<wchar_t> WideString;
+
+enum class Radix
+{
+    HEX, hex, Dec
+};
+
+struct EndLine {};
+
+extern EndLine EndL;
+
+template<class... Args>
+void FormatAnsiString(char* output, size_t output_size, const char* fmt, Args... args)
+{
+#if defined(ZW_KERNEL_MODE_)
+    RtlStringCbPrintfA(output, output_size, fmt, args...);
+#else
+    sprintf_s(output, output_size, fmt, args...);
+#endif
+}
+
+template<size_t t_capacity, class... Args>
+void FormatAnsiString(char(&output)[t_capacity], const char* fmt, Args... args)
+{
+#if defined(ZW_KERNEL_MODE_)
+    RtlStringCbPrintfA(output, t_capacity, fmt, args...);
+#else
+    sprintf_s(output, t_capacity, fmt, args...);
+#endif
+}
+
+template<class... Args>
+void FormatWideString(wchar_t* output, size_t output_size, const wchar_t* fmt, Args... args)
+{
+#if defined(ZW_KERNEL_MODE_)
+    RtlStringCbPrintfW(output, output_size, fmt, args...);
+#else
+    swprintf_s(output, output_size, fmt, args...);
+#endif
+}
+
+template<size_t t_capacity, class... Args>
+void FormatWideString(wchar_t(&output)[t_capacity], const wchar_t* fmt, Args... args)
+{
+#if defined(ZW_KERNEL_MODE_)
+    RtlStringCbPrintfW(output, t_capacity, fmt, args...);
+#else
+    swprintf_s(output, t_capacity, fmt, args...);
+#endif
+}
+
+template<size_t t_capacity, class CharType, class... Args>
+void FormatString(CharType(&output)[t_capacity], const CharType* fmt, Args... args)
+{
+    if (sizeof(char) == sizeof(CharType))
+    {
+        FormatAnsiString(reinterpret_cast<char*>(output), t_capacity, reinterpret_cast<const char*>(fmt), args...);
+    }
+    else
+    {
+        FormatWideString(reinterpret_cast<wchar_t*>(output), t_capacity, reinterpret_cast<const wchar_t*>(fmt), args...);
+    }
+}
+
+template<class CharType, ENABLE_IF(IsCharType<CharType>::value)>
+class StringStream final
+{
+public:
+    StringStream()
+        : _cur_radix(Radix::HEX)
+    {}
+
+    const String<CharType>& str() const
+    {
+        return _str;
+    }
+
+    StringStream& operator <<(Radix new_radix)
+    {
+        _cur_radix = new_radix;
+
+        return *this;
+    }
+
+    StringStream& operator <<(EndLine)
+    {
+        _str.push_back(CharType('\n'));
+
+        return *this;
+    }
+
+    StringStream& operator <<(bool b)
+    {
+        char buf[8] = {};
+
+        if (b)
+        {
+            _str.push_back(CharType('t'));
+            _str.push_back(CharType('r'));
+            _str.push_back(CharType('u'));
+            _str.push_back(CharType('e'));
+        }
+        else
+        {
+            _str.push_back(CharType('f'));
+            _str.push_back(CharType('a'));
+            _str.push_back(CharType('l'));
+            _str.push_back(CharType('s'));
+            _str.push_back(CharType('e'));
+        }
+        
+        return *this;
+    }
+
+    StringStream& operator <<(char c)
+    {
+        return _OutputInteger<8>("%c", "%c", "%c", c);
+    }
+
+    StringStream& operator <<(wchar_t c)
+    {
+        return _OutputInteger<8>("%lc", "%lc", "%lc", c);
+    }
+
+    StringStream& operator <<(signed char n)
+    {
+        return _OutputInteger<8>("%hhX", "%hhx", "%hhd", n);
+    }
+
+    StringStream& operator <<(unsigned char n)
+    {
+        return _OutputInteger<8>("%hhX", "%hhx", "%hhu", n);
+    }
+
+    StringStream& operator <<(signed short n)
+    {
+        return _OutputInteger<16>("%hX", "%hx", "%hd", n);
+    }
+
+    StringStream& operator <<(unsigned short n)
+    {
+        return _OutputInteger<16>("%hX", "%hx", "%hu", n);
+    }
+
+    StringStream& operator <<(signed long n)
+    {
+        return _OutputInteger<32>("%lX", "%lx", "%ld", n);
+    }
+
+    StringStream& operator <<(unsigned long n)
+    {
+        return _OutputInteger<32>("%lX", "%lx", "%lu", n);
+    }
+
+    StringStream& operator <<(signed int n)
+    {
+        return _OutputInteger<32>("%X", "%x", "%d", n);
+    }
+
+    StringStream& operator <<(unsigned int n)
+    {
+        return _OutputInteger<32>("%X", "%x", "%u", n);
+    }
+
+    StringStream& operator <<(signed long long n)
+    {
+        return _OutputInteger<64>("%llX", "%llx", "%lld", n);
+    }
+
+    StringStream& operator <<(unsigned long long n)
+    {
+        return _OutputInteger<64>("%llX", "%llx", "%llu", n);
+    }
+
+    StringStream& operator <<(Pointer p)
+    {
+        return _OutputInteger<64>("%p", "%p", "%p", p.get());
+    }
+
+    StringStream& operator <<(double f)
+    {
+        return _OutputInteger<64>("%f", "%f", "%f", f);
+    }
+
+    StringStream& operator <<(long double Lf)
+    {
+        return _OutputInteger<128>("%Lf", "%Lf", "%Lf", Lf);
+    }
+
+    StringStream& operator <<(const StringRef<CharType>& str)
+    {
+        _str.append(str.c_str(), str.size());
+
+        return *this;
+    }
+
+    StringStream& operator <<(const CharType* str)
+    {
+        _str.append(str, GetLength(str));
+
+        return *this;
+    }
+
+private:
+    template<size_t t_buf_size, class T>
+    StringStream& _OutputInteger(const char* fmt_HEX, const char* fmt_hex, const char* fmt_Dec, T n)
+    {
+        CharType buf[t_buf_size] = {};
+
+        switch (_cur_radix)
+        {
+        case Radix::HEX:
+        {
+            FormatString(buf, fmt_HEX, n);
+        }
+        break;
+
+        case Radix::hex:
+        {
+            FormatString(buf, fmt_hex, n);
+        }
+        break;
+
+        case Radix::Dec:
+        {
+            FormatString(buf, fmt_Dec, n);
+        }
+        break;
+        }
+
+        _str.append(buf, GetLength(buf));
+
+        return *this;
+    }
+
+private:
+    Radix            _cur_radix;
+    String<CharType> _str;
+};
+
+typedef StringStream<char>    AnsiStringStream;
+typedef StringStream<wchar_t> WideStringStream;
 
 template<class T, ENABLE_IF(!IsCharType<T>::value && !IsIntegral<T>::value)>
 inline void tolower(T& str)

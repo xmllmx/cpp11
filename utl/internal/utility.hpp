@@ -193,6 +193,26 @@ void Zero(T(&array_obj)[t_capacity])
     Zero(array_obj, sizeof(array_obj));
 }
 
+class Pointer final
+{
+public:
+    Pointer()
+        : _p(nullptr)
+    {}
+
+    Pointer(const void* p)
+        : _p(p)
+    {}
+
+    const void* get() const
+    {
+        return _p;
+    }
+
+private:
+    const void* _p;
+};
+
 class BoolStatusChecker
 {
 public:

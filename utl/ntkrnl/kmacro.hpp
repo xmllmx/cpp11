@@ -3,13 +3,13 @@
 #define Abort() DbgBreakPoint()
 
 #if DBG
-#define Print(_x_) Log(_x_)
+/**/#define Print(msg) PrintEx("%s", (AnsiStringStream() << msg).str())
 #else
-#define Print(_x_)
+/**/#define Print(msg)
 #endif
 
 #ifndef K_POOL_TAG
-#define K_POOL_TAG 'wenk'
+/**/#define K_POOL_TAG 'wenk'
 #endif
 
 #define SAFE_CODE()         Assert(PASSIVE_LEVEL == KeGetCurrentIrql())

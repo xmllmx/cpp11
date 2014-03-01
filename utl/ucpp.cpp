@@ -1,15 +1,8 @@
-#include <iostream>
+#include <ucpp.hpp>
 
-bool g_enable_log = false;
+ILogger* g_trace_logger   = nullptr;
+ILogger* g_debug_logger   = nullptr;
+ILogger* g_warning_logger = nullptr;
+ILogger* g_error_logger   = nullptr;
 
-using namespace std;
-
-void LogAnsiString(const char* sz)
-{
-    cout << sz;
-}
-
-void LogWideString(const wchar_t* sz)
-{
-    wcout << sz;
-}
+EndLine EndL;

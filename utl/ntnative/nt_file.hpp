@@ -5,7 +5,7 @@
 class NtFile
 {
 public:
-    static constexpr ULONG DEFAULT_SHARE            = FILE_SHARE_READ|FILE_SHARE_WRITE|FILE_SHARE_DELETE;
+    static constexpr ULONG DEFAULT_SHARE = FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE;
 
     class NtStatusChecker final
     {
@@ -29,12 +29,25 @@ protected:
     virtual ~NtFile() = default;
 
 public:
+    NtResult Create(ULONG intent, const ObjectAttributes& oa, ACCESS_MASK access_mask, ULONG share_access = DEFAULT_SHARE, ULONG options = 0)
+    {
+        auto ret = _DoCreateFile(intent, oa, access_mask, share_access, options);
+        if (ret)
+        {
+            FILE_STANDARD_INFORMATION info = {};
+            this->QueryInformation(FileStandardInformation, &info, sizeof(info));
+            _is_dir = !!info.Directory;
+        }
+
+        return ret;
+    }
+
     template<class PathStringType>
-    NtResult Create(const PathStringType& full_path, ULONG intent, bool is_dir, ACCESS_MASK access_mask, ULONG share_access = DEFAULT_SHARE, ULONG options = 0)
+    NtResult Create(ULONG intent, const PathStringType& full_path, bool is_dir, ACCESS_MASK access_mask, ULONG share_access = DEFAULT_SHARE, ULONG options = 0)
     {
         _is_dir = is_dir;
 
-        return _DoCreateFile(ObjectAttributes(full_path), intent, access_mask, share_access, _GetRealOptions(options));
+        return _DoCreateFile(intent, ObjectAttributes(full_path), access_mask, share_access, _GetRealOptions(options));
     }
 
     template<class PathStringType>
@@ -42,15 +55,15 @@ public:
     {
         _is_dir = is_dir;
 
-        return _DoCreateFile(ObjectAttributes(full_path), FILE_OPEN, access_mask, share_access, _GetRealOptions(options));
+        return _DoCreateFile(FILE_OPEN, ObjectAttributes(full_path), access_mask, share_access, _GetRealOptions(options));
     }
-    
+
     template<class PathStringType>
     NtResult CreateNewFile(const PathStringType& full_path)
     {
         _is_dir = false;
-        
-        return _DoCreateFile(ObjectAttributes(full_path), FILE_CREATE, SYNCHRONIZE, DEFAULT_SHARE, _GetRealOptions(0));
+
+        return _DoCreateFile(FILE_CREATE, ObjectAttributes(full_path), SYNCHRONIZE, DEFAULT_SHARE, _GetRealOptions(0));
     }
 
     template<class PathStringType>
@@ -58,31 +71,36 @@ public:
     {
         _is_dir = true;
 
-        return _DoCreateFile(ObjectAttributes(full_path), FILE_CREATE, SYNCHRONIZE, DEFAULT_SHARE, _GetRealOptions(0));
+        return _DoCreateFile(FILE_CREATE, ObjectAttributes(full_path), SYNCHRONIZE, DEFAULT_SHARE, _GetRealOptions(0));
     }
-    
+
     template<class PathStringType>
     NtResult OpenDirectoryToListContents(const wchar_t* sz_full_path, ULONG options = 0, ULONG share_access = sm_default_sa)
     {
         _is_dir = true;
 
-        return _DoCreateFile(ObjectAttributes(full_path), FILE_OPEN, SYNCHRONIZE|FILE_READ_ATTRIBUTES|FILE_LIST_DIRECTORY, share_access, _GetRealOptions(options));
+        return _DoCreateFile(FILE_OPEN, ObjectAttributes(full_path), 
+                             SYNCHRONIZE|FILE_READ_ATTRIBUTES|FILE_LIST_DIRECTORY,
+                             share_access, _GetRealOptions(options));
     }
-    
+
     template<class PathStringType>
     NtResult OpenFileToReadData(const PathStringType& full_path, ULONG share_access = DEFAULT_SHARE, ULONG options = 0)
     {
         _is_dir = false;
 
-        return _DoCreateFile(ObjectAttributes(full_path), FILE_OPEN, SYNCHRONIZE|FILE_READ_ATTRIBUTES|FILE_READ_DATA, share_access, _GetRealOptions(options));
+        return _DoCreateFile(FILE_OPEN, ObjectAttributes(full_path), 
+                             SYNCHRONIZE|FILE_READ_ATTRIBUTES|FILE_READ_DATA,
+                             share_access, _GetRealOptions(options));
     }
 
     template<class PathStringType>
     NtResult OpenFileToReadWriteData(const PathStringType& full_path, ULONG share_access = DEFAULT_SHARE, ULONG options = 0)
-    {     
+    {
         _is_dir = false;
 
-        return _DoCreateFile(ObjectAttributes(full_path), FILE_OPEN, SYNCHRONIZE|FILE_READ_ATTRIBUTES|FILE_WRITE_ATTRIBUTES|FILE_READ_DATA|FILE_WRITE_DATA, 
+        return _DoCreateFile(FILE_OPEN, ObjectAttributes(full_path), 
+                             SYNCHRONIZE|FILE_READ_ATTRIBUTES|FILE_WRITE_ATTRIBUTES|FILE_READ_DATA|FILE_WRITE_DATA,
                              share_access, _GetRealOptions(options));
     }
 
@@ -91,7 +109,7 @@ public:
     {
         _is_dir = true;
 
-        return _DoCreateFile(ObjectAttributes(full_path), FILE_OPEN, SYNCHRONIZE|DELETE, share_access, _GetRealOptions(options));
+        return _DoCreateFile(FILE_OPEN, ObjectAttributes(full_path), SYNCHRONIZE|DELETE, share_access, _GetRealOptions(options));
     }
 
     template<class PathStringType>
@@ -99,7 +117,8 @@ public:
     {
         _is_dir = false;
 
-        return _DoCreateFile(ObjectAttributes(full_path), FILE_OPEN, SYNCHRONIZE|DELETE, share_access, _GetRealOptions(options));
+        return _DoCreateFile(FILE_OPEN, ObjectAttributes(full_path), 
+                             SYNCHRONIZE|DELETE, share_access, _GetRealOptions(options));
     }
 
     template<class PathStringType>
@@ -107,15 +126,17 @@ public:
     {
         _is_dir = true;
 
-        return _DoCreateFile(ObjectAttributes(full_path), FILE_OPEN, SYNCHRONIZE|FILE_READ_ATTRIBUTES, share_access, _GetRealOptions(options));
+        return _DoCreateFile(FILE_OPEN, ObjectAttributes(full_path), 
+                             SYNCHRONIZE|FILE_READ_ATTRIBUTES, share_access, _GetRealOptions(options));
     }
 
     template<class PathStringType>
-    NtResult OpenDirectoryToSetAttributes(const PathStringType& full_path, ULONG share_access = DEFAULT_SHARE, ULONG options = 0)
+    NtResult OpenDirectoryToQuerySetAttributes(const PathStringType& full_path, ULONG share_access = DEFAULT_SHARE, ULONG options = 0)
     {
         _is_dir = true;
 
-        return _DoCreateFile(ObjectAttributes(full_path), FILE_OPEN, SYNCHRONIZE|FILE_WRITE_ATTRIBUTES, share_access, _GetRealOptions(options));
+        return _DoCreateFile(FILE_OPEN, ObjectAttributes(full_path),
+                             SYNCHRONIZE|FILE_WRITE_ATTRIBUTES, share_access, _GetRealOptions(options));
     }
 
     template<class PathStringType>
@@ -123,17 +144,19 @@ public:
     {
         _is_dir = false;
 
-        return _DoCreateFile(ObjectAttributes(full_path), FILE_OPEN, SYNCHRONIZE|FILE_READ_ATTRIBUTES, share_access, _GetRealOptions(options));
+        return _DoCreateFile(FILE_OPEN, ObjectAttributes(full_path), 
+                             SYNCHRONIZE|FILE_READ_ATTRIBUTES, share_access, _GetRealOptions(options));
     }
 
     template<class PathStringType>
-    NtResult OpenFileToSetAttributes(const PathStringType& full_path, ULONG share_access = DEFAULT_SHARE, ULONG options = 0)
+    NtResult OpenFileToQuerySetAttributes(const PathStringType& full_path, ULONG share_access = DEFAULT_SHARE, ULONG options = 0)
     {
         _is_dir = false;
 
-        return _DoCreateFile(ObjectAttributes(full_path), FILE_OPEN, SYNCHRONIZE|FILE_WRITE_ATTRIBUTES, share_access, _GetRealOptions(options));
+        return _DoCreateFile(FILE_OPEN, ObjectAttributes(full_path),
+                             SYNCHRONIZE|FILE_WRITE_ATTRIBUTES, share_access, _GetRealOptions(options));
     }
-    
+
     bool IsNtfs() const
     {
         return _is_ntfs;
@@ -143,12 +166,12 @@ public:
     {
         return _status;
     }
-    
+
     bool IsDirectory() const
     {
         return _is_dir;
     }
-    
+
     NtResult Read(uint64_t offset, ULONG size, void* output) const
     {
         if (nullptr == output)
@@ -165,7 +188,7 @@ public:
         {
             return NtResult(0, STATUS_BUFFER_TOO_SMALL);
         }
-        
+
         auto nr = this->Read(offset, size, output.get());
         if (nr)
         {
@@ -239,7 +262,7 @@ public:
     NtResult SetSize(uint64_t new_size)
     {
         FILE_END_OF_FILE_INFORMATION info = {};
-        info.EndOfFile.QuadPart           = new_size;
+        info.EndOfFile.QuadPart = new_size;
 
         return this->SetInformation(FileEndOfFileInformation, &info, sizeof(info));
     }
@@ -262,7 +285,7 @@ public:
 
     NtResult SetAttributes(ULONG new_attributes)
     {
-        FILE_BASIC_INFORMATION info = { {}, {}, {}, {}, new_attributes };
+        FILE_BASIC_INFORMATION info = {{}, {}, {}, {}, new_attributes};
 
         return this->SetInformation(FileBasicInformation, &info, sizeof(info));
     }
@@ -287,15 +310,15 @@ public:
 
     NtResult Rename(const WideStringRef& target_path, bool b_replace_if_exists = false)
     {
-        auto buf  = MakeBuffer(target_path.length() * sizeof(wchar_t) + sizeof(FILE_RENAME_INFORMATION) + 1);
+        auto buf = MakeBuffer(target_path.length() * sizeof(wchar_t)+sizeof(FILE_RENAME_INFORMATION)+1);
         auto info = Cast<PFILE_RENAME_INFORMATION>(buf);
 
         info->ReplaceIfExists = b_replace_if_exists;
-        info->RootDirectory   = {};
-        info->FileNameLength  = target_path.length() * sizeof(wchar_t);
+        info->RootDirectory = {};
+        info->FileNameLength = target_path.length() * sizeof(wchar_t);
 
         memcpy(info->FileName, target_path.c_str(), info->FileNameLength);
-        info->FileName[target_path.length()] = 0;        
+        info->FileName[target_path.length()] = 0;
 
         return this->SetInformation(FileRenameInformation, buf.get(), buf.size());
     }
@@ -305,7 +328,7 @@ public:
     virtual NTSTATUS Close() = 0;
 
 protected:
-    virtual NtResult _DoCreateFile(const POBJECT_ATTRIBUTES oa, ULONG intent, ACCESS_MASK access_mask, ULONG share_access, ULONG options) = 0;
+    virtual NtResult _DoCreateFile(ULONG intent, const POBJECT_ATTRIBUTES oa, ACCESS_MASK access_mask, ULONG share_access, ULONG options) = 0;
     virtual NtResult _DoRead(uint64_t offset, ULONG size, void* output) const = 0;
     virtual NtResult _DoWrite(uint64_t offset, ULONG size, const void* input) = 0;
     virtual NtResult _DoQueryInformation(FILE_INFORMATION_CLASS info_class, PVOID output, ULONG output_size) const = 0;
@@ -330,7 +353,7 @@ private:
 
         return options;
     }
-    
+
 protected:
     mutable NTSTATUS _status;
     bool             _is_ntfs;
@@ -345,7 +368,7 @@ public:
     ZwFile(ZwFile&& other)
         : NtFile(Move(other)), _h_file(other._h_file)
     {
-        _h_file  = {};
+        _h_file = {};
     }
 
     DEFINE_MOVE_ASSIGNER(ZwFile);
@@ -365,11 +388,25 @@ public:
         this->ZwFile::Close();
     }
 
-public:    
+public:
     ZwFile(bool is_ntfs)
         : NtFile(is_ntfs), _h_file()
     {}
-    
+
+    ZwFile(bool is_ntfs, HANDLE h_file)
+        : NtFile(is_ntfs), _h_file(h_file)
+    {}
+
+    void Bind(HANDLE h_file)
+    {
+        this->Close();
+
+        if (h_file)
+        {
+            _h_file = h_file;
+        }
+    }
+
     HANDLE Yield()
     {
         DEFER(_h_file = {});
@@ -393,9 +430,9 @@ public:
 
         return _status;
     }
-    
+
 protected:
-    virtual NtResult _DoCreateFile(const POBJECT_ATTRIBUTES oa, ULONG intent, ACCESS_MASK access_mask, ULONG share_access, ULONG options) override
+    virtual NtResult _DoCreateFile(ULONG intent, const POBJECT_ATTRIBUTES oa, ACCESS_MASK access_mask, ULONG share_access, ULONG options) override
     {
         this->Close();
 
@@ -409,7 +446,7 @@ protected:
     {
         IO_STATUS_BLOCK iosb = {};
         _status = ZwReadFile(_h_file, 0, 0, 0, &iosb, output, size, LargeInteger(offset), 0);
-        
+
         return NtResult(iosb.Information, _status);
     }
 
@@ -417,7 +454,7 @@ protected:
     {
         IO_STATUS_BLOCK iosb = {};
         _status = ZwWriteFile(_h_file, 0, 0, 0, &iosb, const_cast<PVOID>(input), size, LargeInteger(offset), 0);
-        
+
         return NtResult(iosb.Information, _status);
     }
 

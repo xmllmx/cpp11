@@ -6,6 +6,8 @@
 /**/#error macro 'ZW_KERNEL_MODE_' not defined
 #endif
 
+void PrintEx(const char* format, ...);
+
 extern "C" NTSTATUS NTAPI ObReferenceObjectByName(PUNICODE_STRING ObjectPath,
                                                   ULONG Attributes,
                                                   PACCESS_STATE PassedAccessState,
