@@ -182,17 +182,6 @@ T1 SetFlagOff(T1& flags, T2 flag)
     return flags;
 }
 
-inline void Zero(void* p, size_t size)
-{
-    memset(p, 0, size);
-}
-
-template<class T, size_t t_capacity>
-void Zero(T(&array_obj)[t_capacity])
-{
-    Zero(array_obj, sizeof(array_obj));
-}
-
 class Pointer final
 {
 public:
@@ -217,7 +206,8 @@ class BoolStatusChecker
 {
 public:
     typedef bool StatusType;
-    static const bool default_status = false;
+    static const bool default_uninitialized_status = false;
+    static const bool default_initialized_status   = true;
 
     bool operator ()(bool b) const
     {
@@ -231,10 +221,10 @@ class Optional final
 public:
     typedef typename StatusCheckerType::StatusType StatusType;
 
-    DEFAULT_COPY(Optional);
-    DEFAULT_MOVE(Optional);
-    Optional() = default;
-    
+    Optional()
+        : _value(), _status(StatusCheckerType::default_uninitialized_status), _fn_status_checker()
+    {}
+        
     explicit operator bool() const
     {
         return _fn_status_checker(_status);
@@ -242,27 +232,47 @@ public:
 
 public:
     template<ENABLE_IF(!IsGreaterThan(sizeof(T), sizeof(void*)))>
-    Optional(T value, StatusType status = StatusCheckerType::default_status)
+    Optional(T value, StatusType status = StatusCheckerType::default_initialized_status)
         : _value(value), _status(status), _fn_status_checker()
     {}
     
     template<ENABLE_IF(IsGreaterThan(sizeof(T), sizeof(void*)))>
-    Optional(const T& value, StatusType status = StatusCheckerType::default_status)
+    Optional(const T& value, StatusType status = StatusCheckerType::default_initialized_status)
         : _value(value), _status(status), _fn_status_checker()
     {}
 
-    Optional(T&& value, StatusType status = StatusCheckerType::default_status)
+    Optional(T&& value, StatusType status = StatusCheckerType::default_initialized_status)
         : _value(Move(value)), _status(status), _fn_status_checker()
     {}
 
-    const T* get() const
+    template<ENABLE_IF(!IsGreaterThan(sizeof(T), sizeof(void*)))>
+    void set_value(T value)
+    {
+        _value  = Move(value);
+        _status = StatusCheckerType::default_initialized_status;
+    }
+
+    template<ENABLE_IF(IsGreaterThan(sizeof(T), sizeof(void*)))>
+    void set_value(const T& value)
+    {
+        _value  = value;
+        _status = StatusCheckerType::default_initialized_status;
+    }
+
+    void set_value(T&& value)
+    {
+        _value  = Move(value);
+        _status = StatusCheckerType::default_initialized_status;
+    }
+
+    const T* get_ptr() const
     {
         Assert(*this);
 
         return &_value;
     }
 
-    T* get()
+    T* get_ptr()
     {
         Assert(*this);
 
@@ -307,6 +317,8 @@ private:
     StatusType        _status;
     StatusCheckerType _fn_status_checker;
 };
+
+typedef Optional<bool> TriBool;
 
 template<class CharType, ENABLE_IF(IsCharType<CharType>::value)>
 inline CharType tolower(CharType c)

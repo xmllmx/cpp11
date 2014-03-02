@@ -1,14 +1,40 @@
 #pragma once
 
-template<class Pointer = void*>
-Pointer Allocate(size_t cb_size)
+template<class PointerType = void*>
+PointerType Allocate(size_t cb_size)
 {
-    return Pointer(operator new [](cb_size));
+    return PointerType(operator new[](cb_size));
 }
 
 inline void Free(void* p)
 {
-    operator delete [](p);
+    operator delete[](p);
+}
+
+inline void Zero(void* p, size_t size)
+{
+    memset(p, 0, size);
+}
+
+template<class T, size_t t_capacity>
+void Zero(T(&array_obj)[t_capacity])
+{
+    Zero(array_obj, sizeof(array_obj));
+}
+
+template<class T>
+void InitializeByDefault(T* p, size_t size, CHOOSE_IF(IsFundamental<typename RemoveAllExtents<T>::type>::value))
+{
+    Zero(p, sizeof(T) * size);
+}
+
+template<class T>
+void InitializeByDefault(T* p, size_t size, CHOOSE_IF(!IsFundamental<typename RemoveAllExtents<T>::type>::value))
+{
+    FOR(i, size)
+    {
+        p[i] = T();
+    }
 }
 
 template<class T>
@@ -27,9 +53,9 @@ template<class T>
 class UniquePtr final
 {
 public:
-    typedef typename RemoveConstVolatileReference<typename RemoveAllExtents<T>::type>::type ElementType;
+    typedef typename RemoveConstVolatileReference<typename RemoveExtent<T>::type>::type ElementType;
 
-    template<class U, ENABLE_IF(!IsArray<U>::value && 0 == Extent<U>::value), class... Args>
+    template<class U, class... Args, ENABLE_IF(!IsArray<U>::value)>
     friend UniquePtr<U> MakeUnique(Args&&... args);
 
     template<class U, ENABLE_IF(IsArray<U>::value && 0 == Extent<U>::value)>
@@ -59,19 +85,10 @@ public:
 
     ~UniquePtr()
     {
-        if (_p)
-        {
-            if (IsArray<T>::value)
-            {
-                delete[] _p;
-            }
-            else
-            {
-                delete _p;
-            }
-        }
+        this->resize(0);
 
-        _p = nullptr;
+        SAFE_FREE(_p);
+        _capacity = 0;        
     }
 
     explicit operator bool() const
@@ -84,7 +101,23 @@ public:
         : _p(), _capacity(), _size()
     {}
 
-    UniquePtr duplicate() const
+    template<class DummyType = ElementType>
+    UniquePtr duplicate(CHOOSE_IF(IsFundamental<DummyType>::value)) const
+    {
+        if (!_p)
+        {
+            return {};
+        }
+
+        auto tmp = MakeUnique<T>(_capacity);
+        memcpy(tmp.get(), _p, _size * sizeof(ElementType));
+        tmp._size = _size;
+
+        return tmp;
+    }
+
+    template<class DummyType = ElementType>
+    UniquePtr duplicate(CHOOSE_IF(!IsFundamental<DummyType>::value)) const
     {
         if (!_p)
         {
@@ -96,8 +129,7 @@ public:
         {
             tmp._p[i] = _p[i];
         }
-
-        tmp.resize(_size);
+        tmp._size = _size;
 
         return tmp;
     }
@@ -147,16 +179,55 @@ public:
         return tmp;
     }
 
-    bool resize(size_t new_size)
+    template<class BaseType = typename RemoveAllExtents<ElementType>::type>
+    bool resize(size_t new_size, CHOOSE_IF(IsFundamental<BaseType>::value))
     {
-        if (new_size <= _capacity)
+        if (new_size > _capacity)
         {
-            _size = new_size;
+            return false;
+        }
 
+        if (_size == new_size)
+        {
             return true;
         }
 
-        return false;
+        _size = new_size;
+
+        return true;
+    }
+
+    template<class BaseType = typename RemoveAllExtents<ElementType>::type>
+    bool resize(size_t new_size, CHOOSE_IF(!IsFundamental<BaseType>::value))
+    {
+        if (new_size > _capacity)
+        {
+            return false;
+        }
+
+        if (_size == new_size)
+        {
+            return true;
+        }
+
+        if (new_size < _size)
+        {
+            for (auto i = new_size; i < _size; ++i)
+            {
+                Destroy<ElementType>(_p + i);
+            }
+        }
+        else
+        {
+            for (auto i = _size; i < new_size; ++i)
+            {
+                _p[i] = ElementType();
+            }
+        }
+
+        _size = new_size;
+
+        return true;
     }
 
 private:
@@ -170,30 +241,31 @@ private:
     size_t       _size;
 };
 
-template<class T, ENABLE_IF(!IsArray<T>::value && 0 == Extent<T>::value), class... Args>
+template<class T, class... Args, ENABLE_IF(!IsArray<U>::value)>
 UniquePtr<T> MakeUnique(Args&&... args)
 {
-    return UniquePtr<T>(new T(Forward<Args...>(args...)), 1, 1);
+    auto buf = Allocate(sizeof(T));
+
+    return UniquePtr<T>(new(buf) T(Forward<Args...>(args...)), 1, 1);
 }
 
 template<class T, ENABLE_IF(IsArray<T>::value && 0 == Extent<T>::value)>
-UniquePtr<T> MakeUnique(size_t size, bool is_default_initialized = false)
+UniquePtr<T> MakeUnique(size_t size, bool is_initialized = false)
 {
-    typedef typename RemoveConstVolatileReference<RemoveAllExtents<T>::type>::type ElementType;
+    typedef typename RemoveConstVolatileReference<typename RemoveExtent<T>::type>::type ElementType;
 
     if (0 == size)
     {
         return {};
     }
 
-    if (is_default_initialized)
+    auto buf = Allocate<ElementType*>(size * sizeof(ElementType));
+    if (is_initialized)
     {
-        return UniquePtr<T>(new ElementType[size](), size, size);
+        InitializeByDefault(buf, size);
     }
-    else
-    {
-        return UniquePtr<T>(new ElementType[size], size, size);
-    }
+    
+    return UniquePtr<T>(buf, size, size);
 }
 
 template<class T, class... Args>
@@ -218,7 +290,7 @@ Dest Cast(const Buffer& buf)
     return reinterpret_cast<Dest>(buf.get());
 }
 
-template<size_t t_block_size, ENABLE_IF(IsGreaterThan<t_block_size, sizeof(char)>::value)>
+template<size_t t_block_size, ENABLE_IF(IsGreaterThan(t_block_size, sizeof(char)))>
 class MemoryPool final
 {
     typedef Byte BlockType[t_block_size];
@@ -239,9 +311,10 @@ public:
         _next_free_block_idx = 0;
         _free_blocks_available = max_block_count;
 
-        FOR(i, block_count)
+        FOR(i, max_block_count)
         {
-            reinterpret_cast<uint16_t&>(_buf[i]) = i + 1;
+            auto p = &_buf[i];
+            *reinterpret_cast<uint16_t*>(p) = i + 1;
         }
     }
 
@@ -264,11 +337,11 @@ public:
 
     void FreeBlock(void* p)
     {
-        auto idx = PtrDiffInElements<BlockType>(p - &_buf[0]);
+        auto idx = PtrDiffInElements<BlockType>(static_cast<BlockType*>(p), reinterpret_cast<BlockType*>(&_buf[0]));
         if (idx < _buf.capacity())
         {
-            _buf[idx] = _next_free_block_idx;
-            _next_free_block_idx = idx;
+            *reinterpret_cast<uint16_t*>(&_buf[idx]) = _next_free_block_idx;
+            _next_free_block_idx                     = idx;
             ++_free_blocks_available;
         }
         else
@@ -279,6 +352,6 @@ public:
     
 private:
     UniquePtr<BlockType[]> _buf;
-    uint8_t                _next_free_block_idx;
-    uint8_t                _free_blocks_available;
+    uint16_t               _next_free_block_idx;
+    uint16_t               _free_blocks_available;
 };

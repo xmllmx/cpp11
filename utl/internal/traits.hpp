@@ -63,8 +63,10 @@ struct EnableIf<true>
 	typedef void type; // type is DummyType for test
 };
 
-#define _ENABLE_IF_(expr) class = typename EnableIf<expr>::type
-#define ENABLE_IF(...) _ENABLE_IF_((__VA_ARGS__))
+#define ENABLE_IF_(expr) class = typename EnableIf<expr>::type
+#define ENABLE_IF(...) ENABLE_IF_((__VA_ARGS__))
+#define CHOOSE_IF_(expr) typename EnableIf<expr>::type* = nullptr
+#define CHOOSE_IF(...) CHOOSE_IF_((__VA_ARGS__))
 
 template<class CharType>
 struct IsOrdinaryChar

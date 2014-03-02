@@ -2,6 +2,10 @@
 #include <ucpp.hpp>
 #include <iostream>
 
+#include <string>
+
+using namespace std;
+
 class MyLogger : public ILogger
 {
 public:
@@ -15,7 +19,25 @@ using namespace std;
 
 int main()
 {
-    TraceLog(3.14159 << ", 0x" << 222 << ", dss" << EndL);
-    TraceLog(3.14159 << ", 0x" << 222 << ", dss" << EndL);
-    TraceLog(3.14159 << ", 0x" << 222 << ", dss" << EndL);
+    MemoryPool<1024> pool;
+    pool.Initialize(1024);
+
+    void* buf[10000] = {};
+
+    START_COUNTING(n);
+    FOR(i, 10000)
+    {
+        buf[i] = pool.GetBlock();
+    }
+
+    FOR(i, 10000)
+    {
+        pool.FreeBlock(buf[i]);
+    }
+
+    FOR(i, 10000)
+    {
+        buf[i] = pool.GetBlock();
+    }
+    STOP_COUNTING(n);
 }

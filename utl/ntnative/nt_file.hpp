@@ -11,7 +11,8 @@ public:
     {
     public:
         typedef NTSTATUS StatusType;
-        static const NTSTATUS default_status = STATUS_SUCCESS;
+        static const NTSTATUS default_uninitialized_status = STATUS_INVALID_HANDLE;
+        static const NTSTATUS default_initialized_status   = STATUS_SUCCESS;
 
         bool operator ()(NTSTATUS status) const
         {
@@ -22,8 +23,8 @@ public:
     typedef Optional<ULONG_PTR, NtStatusChecker> NtResult;
 
 protected:
-    NtFile(bool is_ntfs)
-        : _status(), _is_ntfs(is_ntfs), _is_dir()
+    NtFile()
+        : _status(), _is_dir()
     {}
 
     virtual ~NtFile() = default;
@@ -156,12 +157,7 @@ public:
         return _DoCreateFile(FILE_OPEN, ObjectAttributes(full_path),
                              SYNCHRONIZE|FILE_WRITE_ATTRIBUTES, share_access, _GetRealOptions(options));
     }
-
-    bool IsNtfs() const
-    {
-        return _is_ntfs;
-    }
-
+    
     NTSTATUS GetStatus() const
     {
         return _status;
@@ -189,14 +185,14 @@ public:
             return NtResult(0, STATUS_BUFFER_TOO_SMALL);
         }
 
-        auto nr = this->Read(offset, size, output.get());
-        if (nr)
+        auto ret = this->Read(offset, size, output.get());
+        if (ret)
         {
-            output.resize(*nr);
-            Assert(output.size() == *nr);
+            output.resize(*ret);
+            Assert(output.size() == *ret);
         }
 
-        return nr;
+        return ret;
     }
 
     NtResult Read(uint64_t offset, Buffer& output) const
@@ -356,7 +352,6 @@ private:
 
 protected:
     mutable NTSTATUS _status;
-    bool             _is_ntfs;
     bool             _is_dir;
 };
 
@@ -377,7 +372,6 @@ public:
         if (this != &other)
         {
             Swap(_status, other._status);
-            Swap(_is_ntfs, other._is_ntfs);
             Swap(_is_dir, other._is_dir);
             Swap(_h_file, other._h_file);
         }
@@ -389,12 +383,12 @@ public:
     }
 
 public:
-    ZwFile(bool is_ntfs)
-        : NtFile(is_ntfs), _h_file()
+    ZwFile()
+        : NtFile(), _h_file()
     {}
 
-    ZwFile(bool is_ntfs, HANDLE h_file)
-        : NtFile(is_ntfs), _h_file(h_file)
+    ZwFile(HANDLE h_file)
+        : NtFile(), _h_file(h_file)
     {}
 
     void Bind(HANDLE h_file)
@@ -434,6 +428,9 @@ public:
 protected:
     virtual NtResult _DoCreateFile(ULONG intent, const POBJECT_ATTRIBUTES oa, ACCESS_MASK access_mask, ULONG share_access, ULONG options) override
     {
+#if defined(ZW_KERNEL_MODE_)
+        Assert(!KeAreApcsDisabled());
+#endif
         this->Close();
 
         IO_STATUS_BLOCK iosb = {};
@@ -444,6 +441,9 @@ protected:
 
     virtual NtResult _DoRead(uint64_t offset, ULONG size, void* output) const override
     {
+#if defined(ZW_KERNEL_MODE_)
+        Assert(!KeAreApcsDisabled());
+#endif
         IO_STATUS_BLOCK iosb = {};
         _status = ZwReadFile(_h_file, 0, 0, 0, &iosb, output, size, LargeInteger(offset), 0);
 
@@ -452,6 +452,9 @@ protected:
 
     virtual NtResult _DoWrite(uint64_t offset, ULONG size, const void* input) override
     {
+#if defined(ZW_KERNEL_MODE_)
+        Assert(!KeAreApcsDisabled());
+#endif
         IO_STATUS_BLOCK iosb = {};
         _status = ZwWriteFile(_h_file, 0, 0, 0, &iosb, const_cast<PVOID>(input), size, LargeInteger(offset), 0);
 
@@ -460,6 +463,9 @@ protected:
 
     virtual NtResult _DoQueryInformation(FILE_INFORMATION_CLASS info_class, PVOID output, ULONG output_size) const override
     {
+#if defined(ZW_KERNEL_MODE_)
+        Assert(!KeAreApcsDisabled());
+#endif
         IO_STATUS_BLOCK iosb = {};
         _status = ZwQueryInformationFile(_h_file, &iosb, output, output_size, info_class);
 
@@ -468,6 +474,9 @@ protected:
 
     virtual NtResult _DoSetInformation(FILE_INFORMATION_CLASS info_class, const void* input, ULONG input_size) override
     {
+#if defined(ZW_KERNEL_MODE_)
+        Assert(!KeAreApcsDisabled());
+#endif
         IO_STATUS_BLOCK iosb = {};
         _status = ZwSetInformationFile(_h_file, &iosb, const_cast<void*>(input), input_size, info_class);
 
