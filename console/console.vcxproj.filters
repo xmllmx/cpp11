@@ -86,5 +86,14 @@
     <ClCompile Include="..\utl\ucpp.cpp">
       <Filter>utl</Filter>
     </ClCompile>
+    <ClCompile Include="test_nt_file.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="test.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="trace_new.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

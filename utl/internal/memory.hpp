@@ -55,7 +55,7 @@ class UniquePtr final
 public:
     typedef typename RemoveConstVolatileReference<typename RemoveExtent<T>::type>::type ElementType;
 
-    template<class U, class... Args, ENABLE_IF(!IsArray<U>::value)>
+    template<class U, ENABLE_IF(!IsArray<U>::value), class... Args>
     friend UniquePtr<U> MakeUnique(Args&&... args);
 
     template<class U, ENABLE_IF(IsArray<U>::value && 0 == Extent<U>::value)>
@@ -241,7 +241,7 @@ private:
     size_t       _size;
 };
 
-template<class T, class... Args, ENABLE_IF(!IsArray<U>::value)>
+template<class T, ENABLE_IF(!IsArray<T>::value), class... Args>
 UniquePtr<T> MakeUnique(Args&&... args)
 {
     auto buf = Allocate(sizeof(T));

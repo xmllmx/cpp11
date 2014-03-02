@@ -17,27 +17,18 @@ public:
 
 using namespace std;
 
+void test();
+void test_nt_file();
+
+void CheckMemoryLeak();
+
 int main()
 {
-    MemoryPool<1024> pool;
-    pool.Initialize(1024);
-
-    void* buf[10000] = {};
-
-    START_COUNTING(n);
-    FOR(i, 10000)
     {
-        buf[i] = pool.GetBlock();
+        test();
+        test_nt_file();
+        delete[] new char[8];
     }
 
-    FOR(i, 10000)
-    {
-        pool.FreeBlock(buf[i]);
-    }
-
-    FOR(i, 10000)
-    {
-        buf[i] = pool.GetBlock();
-    }
-    STOP_COUNTING(n);
+    CheckMemoryLeak();
 }
