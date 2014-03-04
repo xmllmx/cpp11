@@ -30,11 +30,8 @@ public:
 
 	virtual ~Driver() = default;
 	
-	PDRIVER_OBJECT GetRawDriverObject() const;
-
+	PDRIVER_OBJECT Get() const;
     virtual NTSTATUS Initialize();
-    virtual PFLT_FILTER GetRawFilterObject() const;
-    virtual bool IsMiniFilter() const;
     
 protected:
 	Driver(PDRIVER_OBJECT drv_obj, PUNICODE_STRING reg_path, bool is_unloadable = true);
@@ -47,11 +44,6 @@ protected:
 };
 
 extern Driver* g_drv;
-
-inline bool IsMiniFilter()
-{
-    return g_drv->IsMiniFilter();
-}
 
 inline ULONG GetRandomSeed()
 {

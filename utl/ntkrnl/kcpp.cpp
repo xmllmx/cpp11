@@ -1,5 +1,20 @@
 #include <ntkrnl/kcpp.hpp>
 
+void* Allocate(size_t cb_size, uint64_t options)
+{
+    if (0 == options)
+    {
+        options = NonPagedPool;
+    }
+
+    return ExAllocatePoolWithTag(POOL_TYPE(options), cb_size, KNEW_POOL_TAG);
+}
+
+void Free(void* p)
+{
+    ExFreePoolWithTag(p, KNEW_POOL_TAG);
+}
+
 void PrintEx(const char* format, ...)
 {
     va_list args;
@@ -48,16 +63,11 @@ NTSTATUS Driver::Initialize()
     return STATUS_SUCCESS;
 }
 
-PDRIVER_OBJECT Driver::GetRawDriverObject() const
+PDRIVER_OBJECT Driver::Get() const
 {
     Assert(_drv_obj);
 
     return _drv_obj;
-}
-
-bool Driver::IsMiniFilter() const
-{
-    return false;
 }
 
 VOID Driver::_OnUnloadDriver()
@@ -80,9 +90,4 @@ VOID Driver::_UnloadDriver(PDRIVER_OBJECT drv_obj)
 {
     g_drv->_OnUnloadDriver();
     SAFE_DELETE(g_drv);
-}
-
-PFLT_FILTER Driver::GetRawFilterObject() const
-{
-    return nullptr;
 }

@@ -1,15 +1,7 @@
 #pragma once
 
-template<class PointerType = void*>
-PointerType Allocate(size_t cb_size)
-{
-    return PointerType(operator new[](cb_size));
-}
-
-inline void Free(void* p)
-{
-    operator delete[](p);
-}
+void* Allocate(size_t cb_size, uint64_t options = 0);
+void Free(void* p);
 
 inline void Zero(void* p, size_t size)
 {
@@ -259,7 +251,7 @@ UniquePtr<T> MakeUnique(size_t size, bool is_initialized = false)
         return {};
     }
 
-    auto buf = Allocate<ElementType*>(size * sizeof(ElementType));
+    auto buf = static_cast<ElementType*>(Allocate(size * sizeof(ElementType)));
     if (is_initialized)
     {
         InitializeByDefault(buf, size);
