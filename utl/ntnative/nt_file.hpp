@@ -5,7 +5,7 @@
 class NtFile
 {
 public:
-    static constexpr ULONG DEFAULT_SHARE = FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE;
+    static constexpr ULONG DEFAULT_SHARE = FILE_SHARE_READ|FILE_SHARE_WRITE|FILE_SHARE_DELETE;
 
     class NtStatusChecker final
     {
