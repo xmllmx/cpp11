@@ -1,0 +1,145 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="utl">
+      <UniqueIdentifier>{fb30fb8f-6b01-47db-902b-5fe1151ee6c3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="utl\internal">
+      <UniqueIdentifier>{0d76088e-13b6-402d-8779-82e56063443e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="utl\ntkrnl">
+      <UniqueIdentifier>{511d6a8d-6f2d-49d8-9880-3b393acc49e5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="utl\ntnative">
+      <UniqueIdentifier>{700e04aa-a3a6-4799-99ee-c911e30099e1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="utl\stdex">
+      <UniqueIdentifier>{bd75b6be-b96b-4ab7-82fd-568381356da7}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="main.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="stub.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\utl\ntkrnl\kcpp.cpp">
+      <Filter>utl\ntkrnl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\utl\ntnative\zw_user_mode.cpp">
+      <Filter>utl\ntnative</Filter>
+    </ClCompile>
+    <ClCompile Include="..\utl\ntkrnl\knew.cpp">
+      <Filter>utl\ntkrnl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\utl\ntkrnl\knew_default.cpp">
+      <Filter>utl\ntkrnl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\utl\ntnative\nt_file.cpp">
+      <Filter>utl\ntnative</Filter>
+    </ClCompile>
+    <ClCompile Include="..\utl\ucpp.cpp">
+      <Filter>utl</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="sandbox.inf">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="sources">
+      <Filter>Resource Files</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="sandbox.rc">
+      <Filter>Resource Files</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\utl\ucpp.hpp">
+      <Filter>utl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\utl\internal\array.hpp">
+      <Filter>utl\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\utl\internal\functional.hpp">
+      <Filter>utl\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\utl\internal\log.hpp">
+      <Filter>utl\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\utl\internal\macro.hpp">
+      <Filter>utl\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\utl\internal\memory.hpp">
+      <Filter>utl\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\utl\internal\stdcpp.hpp">
+      <Filter>utl\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\utl\internal\string.hpp">
+      <Filter>utl\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\utl\internal\traits.hpp">
+      <Filter>utl\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\utl\internal\tuple.hpp">
+      <Filter>utl\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\utl\internal\utility.hpp">
+      <Filter>utl\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\utl\ntkrnl\kcpp.hpp">
+      <Filter>utl\ntkrnl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\utl\ntkrnl\kmacro.hpp">
+      <Filter>utl\ntkrnl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\utl\ntkrnl\knew.hpp">
+      <Filter>utl\ntkrnl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\utl\ntnative\kcmn.hpp">
+      <Filter>utl\ntnative</Filter>
+    </ClInclude>
+    <ClInclude Include="..\utl\ntnative\ntstring.hpp">
+      <Filter>utl\ntnative</Filter>
+    </ClInclude>
+    <ClInclude Include="..\utl\ntnative\zw_user_mode.hpp">
+      <Filter>utl\ntnative</Filter>
+    </ClInclude>
+    <ClInclude Include="..\utl\ntnative\zw_utility.hpp">
+      <Filter>utl\ntnative</Filter>
+    </ClInclude>
+    <ClInclude Include="..\utl\ntkrnl\ktree.hpp">
+      <Filter>utl\ntkrnl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\utl\ntkrnl\klock.hpp">
+      <Filter>utl\ntkrnl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\utl\internal\stack.hpp">
+      <Filter>utl\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\utl\internal\lock.hpp">
+      <Filter>utl\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\utl\stdex\utility.hpp">
+      <Filter>utl\stdex</Filter>
+    </ClInclude>
+    <ClInclude Include="..\utl\ntnative\nt_file.hpp">
+      <Filter>utl\ntnative</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>

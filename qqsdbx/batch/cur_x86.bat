@@ -1,0 +1,1 @@
+cmd /k .\setenv.bat %DDKDir%\ chk x86 WIN7 no_oacr

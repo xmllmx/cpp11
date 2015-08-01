@@ -1,0 +1,1 @@
+cmd /k .\setenv.bat %DDKDir%\ chk x64 WNET no_oacr
